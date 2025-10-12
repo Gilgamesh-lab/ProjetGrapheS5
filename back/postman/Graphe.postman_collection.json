@@ -1,0 +1,109 @@
+{
+	"info": {
+		"_postman_id": "196b490d-83f6-4230-b948-35b7b3372d9a",
+		"name": "Graphe",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30618723",
+		"_collection_link": "https://solar-firefly-771998.postman.co/workspace/My-Workspace~e0e2a34c-01a4-461f-8429-138de78ad018/collection/30618723-196b490d-83f6-4230-b948-35b7b3372d9a?action=share&source=collection_link&creator=30618723"
+	},
+	"item": [
+		{
+			"name": "ping",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/ping",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"ping"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getDefaultGraphe",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/getDefaultGraphe",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"getDefaultGraphe"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getBFS",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/getBFS",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"getBFS"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getDFS",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/getDFS",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"getDFS"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "http://localhost:8080/api"
+		}
+	]
+}

@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Built-By: fabri
+Build-Jdk: 17.0.10
+Implementation-Title: ProjetGrapheBackS5
+Implementation-Version: 0.0.1-SNAPSHOT
+Implementation-Vendor-Id: org.apache.maven.archetypes
+Implementation-URL: https://spring.io/projects/spring-boot/ProjetGrapheB
+ ackS5
+Main-Class: SpringBot.main
+Created-By: Maven Integration for Eclipse
+
