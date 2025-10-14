@@ -1,4 +1,4 @@
-package ui;
+package Ui;
 
 import Graphe.Graphe;
 import Graphe.Resultat;

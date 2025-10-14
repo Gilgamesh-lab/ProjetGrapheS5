@@ -169,6 +169,49 @@ public class Graphe {
 		
 	}
 	
+	public ArrayList<Arete> getPrim(String nomPointDepart) {
+		Sommet depart = this.getSommetsTrier().stream().filter(sommet -> sommet.getNom() == nomPointDepart).findFirst().get();
+		ArrayList<Arete> listeAretes = new ArrayList<Arete>();
+		ArrayList<Arete> aretesChoisi = new ArrayList<Arete>();
+		ArrayList<Sommet> sommetVisiter = new ArrayList<Sommet>();
+		
+		
+		depart.getAretes().stream().forEach(arete -> listeAretes.add(arete));
+		sommetVisiter.add(depart);
+		
+		while (aretesChoisi.size() != (this.getSommetsTrier().size() - 1)) { //
+			//System.out.println(listeAretes);
+			int idMinimun = listeAretes.stream()
+					.filter(arete -> !sommetVisiter.contains(arete.getDestination()) || !sommetVisiter.contains(arete.getSource()) )
+					.min(Comparator.comparing(Arete::getPoids))
+					.map(arete -> arete.getId())
+					.get();
+			
+			Arete arete =  listeAretes.stream().filter(arete2 -> arete2.getId() == idMinimun).findFirst().get();
+			
+			if(!sommetVisiter.contains(arete.getDestination())) {
+				arete.getDestination().getAretes().stream().forEach(arete2 -> listeAretes.add(arete2));
+				aretesChoisi.add(arete);
+				sommetVisiter.add(arete.getDestination());
+			}
+			
+			else if(!sommetVisiter.contains(arete.getSource())) {
+				arete.getSource().getAretes().stream().forEach(arete2 -> listeAretes.add(arete2));
+				aretesChoisi.add(arete);
+				sommetVisiter.add(arete.getSource());
+			}
+			
+		}
+		
+		return aretesChoisi;
+		
+		
+	}
+	
+	public void getPlusPetiteArete(ArrayList<Arete> aretes) {
+		
+	}
+	
 	/**
 	 * Applique un parcours en profondeur sur le graphe et renvoie le chemin et le graphe obtenue grâce au parcours en profondeur
 	 * @param nomPointDepart le nom du point à partir du quelle partir
