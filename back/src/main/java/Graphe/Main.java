@@ -1,7 +1,7 @@
 package Graphe;
 
 import java.util.ArrayList;
-
+// Main sans le front
 public class Main  {
 	public static void main(String[] args) {
 		Graphe graphe = Graphe.getDefaultGraphe();

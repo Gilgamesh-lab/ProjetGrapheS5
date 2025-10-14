@@ -1,130 +1,75 @@
 package ui;
 
-import Graphe.Graphe;
-import Graphe.Resultat;
-import Graphe.Sommet;
-import Graphe.Arete;
-
+import Graphe.*;
 import javafx.application.Application;
-import javafx.geometry.Insets;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
-import javafx.scene.text.Text;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
-import java.util.HashMap;
-import java.util.Map;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Pane;
 
 public class Main extends Application {
 
-    private BorderPane root;
-    private javafx.scene.layout.Pane graphPane;
-    private Graphe graphe;
-    private Map<Sommet, Circle> sommetNodes = new HashMap<>();
-
     @Override
     public void start(Stage stage) {
-        graphe = Graphe.getDefaultGraphe(); // graphe actuel en dur
+        Group graphRoot = new Group();
+        VBox root = new VBox();
+        root.setPrefSize(1200, 800);
+        Scene scene = new Scene(root, 1200, 800);
 
-        root = new BorderPane();
-        graphPane = new javafx.scene.layout.Pane();
-        graphPane.setPrefSize(800, 600);
-        root.setCenter(graphPane);
+        Graphe graphe = Graphe.getDefaultGraphe();
+        GrapheView grapheView = new GrapheView(graphe, graphRoot);
 
-        // Controls
-        ComboBox<String> algoChoice = new ComboBox<>();
-        algoChoice.getItems().addAll("Parcours en largeur (BFS)", "Parcours en profondeur (DFS)", "Kruskal");
-        algoChoice.getSelectionModel().selectFirst();
-        Button runButton = new Button("Exécuter BFS/DFS");
+        // Menu déroulant et boutons
+        ComboBox<String> algoMenu = new ComboBox<>();
+        algoMenu.getItems().addAll("BFS", "DFS");
+        algoMenu.setValue("BFS");
+        algoMenu.setDisable(true); // désactivé au départ
 
-        HBox controls = new HBox(10, algoChoice, runButton);
-        controls.setPadding(new Insets(10));
-        root.setTop(controls);
-
-        drawGraph(); // dessin initial du graphe
-
+        Button runButton = new Button("Exécuter l'algo");
+        runButton.setDisable(true);
         runButton.setOnAction(e -> {
-            String algo = algoChoice.getValue();
-            Resultat res;
-            String depart = "Rennes"; // tu peux changer le sommet de départ
-            if(algo.equals("BFS")) {
-                res = graphe.getBFS(depart);
-            } else {
-                res = graphe.getDFS(depart);
+            String algo = algoMenu.getValue();
+            switch(algo) {
+                case "BFS":
+                    Resultat bfs = graphe.getBFS("Paris");
+                    grapheView.highlightPath(bfs.getGraphe());
+                    break;
+                case "DFS":
+                    Resultat dfs = graphe.getDFS("Paris");
+                    grapheView.highlightPath(dfs.getGraphe());
+                    break;
             }
-            highlightResult(res);
         });
 
-        Scene scene = new Scene(root, 1000, 700);
+        Button resetButton = new Button("Relancer simulation");
+        resetButton.setDisable(true);
+        resetButton.setOnAction(e -> grapheView.startSimulation());
+
+        HBox controls = new HBox(10, algoMenu, runButton, resetButton);
+        StackPane graphPane = new StackPane(graphRoot);
+        graphPane.setPrefSize(1200, 700);
+
+        root.getChildren().addAll(controls, graphPane);
         stage.setScene(scene);
-        stage.setTitle("Projet Graphes - Guibert - Amegadjen");
+        stage.setTitle("Simulation Graphe Routier - JavaFX");
         stage.show();
-    }
 
-    private void drawGraph() {
-        graphPane.getChildren().clear();
-        sommetNodes.clear();
+        // activer boutons après stabilisation
+        grapheView.setOnStable(() -> {
+            algoMenu.setDisable(false);
+            runButton.setDisable(false);
+            resetButton.setDisable(false);
+        });
 
-        // générer des positions simples pour chaque sommet (en grille)
-        int cols = 4;
-        int spacing = 150;
-        int i = 0;
-        for(Sommet sommet : graphe.getSommetsTrier()) {
-            int x = 100 + (i % cols) * spacing;
-            int y = 100 + (i / cols) * spacing;
-            Circle circle = new Circle(x, y, 15, Color.LIGHTBLUE);
-            Text label = new Text(x - 10, y - 20, sommet.getNom());
-            graphPane.getChildren().addAll(circle, label);
-            sommetNodes.put(sommet, circle);
-            i++;
-        }
-
-        // dessiner les arêtes
-        for(Arete arete : graphe.getAretes()) {
-            Circle fromNode = sommetNodes.get(arete.getSource());
-            Circle toNode = sommetNodes.get(arete.getDestination());
-            Line line = new Line(fromNode.getCenterX(), fromNode.getCenterY(),
-                    toNode.getCenterX(), toNode.getCenterY());
-            line.setStroke(Color.GRAY);
-            line.setStrokeWidth(2);
-            graphPane.getChildren().add(line);
-
-            // poids au milieu
-            double midX = (fromNode.getCenterX() + toNode.getCenterX()) / 2;
-            double midY = (fromNode.getCenterY() + toNode.getCenterY()) / 2;
-            Text weightLabel = new Text(midX, midY, String.valueOf(arete.getPoids()));
-            graphPane.getChildren().add(weightLabel);
-        }
-    }
-
-    private void highlightResult(Resultat res) {
-        drawGraph(); // reset
-
-        Graphe cheminGraphe = res.getGraphe();
-        for(Arete arete : cheminGraphe.getAretes()) {
-            Circle fromNode = sommetNodes.get(arete.getSource());
-            Circle toNode = sommetNodes.get(arete.getDestination());
-            Line line = new Line(fromNode.getCenterX(), fromNode.getCenterY(),
-                    toNode.getCenterX(), toNode.getCenterY());
-            line.setStroke(Color.RED);
-            line.setStrokeWidth(3);
-            graphPane.getChildren().add(line);
-        }
-
-        // colorer les sommets du chemin
-        for(Sommet s : cheminGraphe.getSommetsTrier()) {
-            Circle c = sommetNodes.get(s);
-            c.setFill(Color.ORANGERED);
-        }
+        grapheView.startSimulation();
     }
 
     public static void main(String[] args) {
-        launch();
+        launch(args);
     }
 }
