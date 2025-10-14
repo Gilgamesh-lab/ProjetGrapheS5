@@ -70,6 +70,16 @@ public class Graphe {
 	}
 	
 	/**
+	 * Renvoie toutes les aretes d'un graphe (sans les doublons)
+	 * @return les aretes
+	 */
+	public ArrayList<Arete> getAretesSansDoublons(){
+		ArrayList<Arete> aretes = new ArrayList<Arete>();
+		this.getSommetsTrier().stream().forEach(sommet -> sommet.getAretes().stream().forEach(arete -> aretes.add(arete)));
+		return (ArrayList<Arete>) this.getAretes().stream().distinct().collect(Collectors.toList());
+	}
+	
+	/**
 	 * Convertit un Graphe en GrapheDeSorti (un format qui peut-être envoyé au front)
 	 * @return le graphe de sortie
 	 */
@@ -127,6 +137,36 @@ public class Graphe {
 		resultat.setGraphe(grapheBFS);
 		this.getSommetsTrier().forEach(sommet -> sommet.setMarquer(false)); // reset
 		return resultat;
+	}
+	
+	public ArrayList<Arete> getKruskal() {
+		ArrayList<Arete> aretesTrierParPoids = this.getAretesSansDoublons();
+		aretesTrierParPoids.sort(Comparator.comparingInt(arete -> arete.getPoids()));
+		 
+		ArrayList<Sommet> sommetVisiter = new ArrayList<Sommet>();
+		ArrayList<Arete> aretes = new ArrayList<Arete>();
+		
+		int i = 0 ;
+		while (sommetVisiter.size() != (this.getSommetsTrier().size() - 1)) {
+			Arete arete = aretesTrierParPoids.get(i);
+			
+			if(!sommetVisiter.contains(arete.getSource())) {
+				aretes.add(arete);
+				sommetVisiter.add(arete.getSource());
+			}
+			
+			else if(!sommetVisiter.contains(arete.getDestination())) {
+				aretes.add(arete);
+				sommetVisiter.add(arete.getDestination());
+			}
+			
+			
+			i++;
+		}
+		
+		return aretes;
+		
+		
 	}
 	
 	/**
