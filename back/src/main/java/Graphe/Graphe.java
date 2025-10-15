@@ -3,6 +3,7 @@ package Graphe;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import SpringBot.GrapheDeSortie.AreteDeSortie;
@@ -139,6 +140,9 @@ public class Graphe {
 		return resultat;
 	}
 	
+	
+	
+	
 	public ArrayList<Arete> getKruskal() {
 		ArrayList<Arete> aretesTrierParPoids = this.getAretesSansDoublons();
 		aretesTrierParPoids.sort(Comparator.comparingInt(arete -> arete.getPoids()));
@@ -147,19 +151,38 @@ public class Graphe {
 		ArrayList<Arete> aretes = new ArrayList<Arete>();
 		
 		int i = 0 ;
-		while (sommetVisiter.size() != (this.getSommetsTrier().size() - 1)) {
-			Arete arete = aretesTrierParPoids.get(i);
+		while (i != (this.getSommetsTrier().size() - 1)) {
+			//System.out.println(sommetVisiter);
+			Arete arete = null;
+			try {
+				arete = aretesTrierParPoids.stream().filter(arete2 -> !sommetVisiter.contains(arete2.getSource()) || !sommetVisiter.contains(arete2.getDestination()) ).findFirst().get();
+			}
+			catch (NoSuchElementException e) { // cas où deux arbres non connectés se sont crées
+				ArrayList<String> sommets = this.getEnsemble(aretes);
+				for (Arete arete2 : aretesTrierParPoids) {
+					if(!sommets.contains(arete2.getDestination().getNom())  && sommets.contains(arete2.getSource().getNom())){
+						arete = arete2;
+						break;
+					}
+					
+					else if(sommets.contains(arete2.getDestination().getNom()) && !sommets.contains(arete2.getSource().getNom())){
+						arete = arete2;
+						break;
+					}
+				}
+				
+				
+			}
+			
 			
 			if(!sommetVisiter.contains(arete.getSource())) {
-				aretes.add(arete);
 				sommetVisiter.add(arete.getSource());
 			}
 			
-			else if(!sommetVisiter.contains(arete.getDestination())) {
-				aretes.add(arete);
+			if(!sommetVisiter.contains(arete.getDestination())) {
 				sommetVisiter.add(arete.getDestination());
 			}
-			
+			aretes.add(arete);
 			
 			i++;
 		}
@@ -180,7 +203,6 @@ public class Graphe {
 		sommetVisiter.add(depart);
 		
 		while (aretesChoisi.size() != (this.getSommetsTrier().size() - 1)) { //
-			//System.out.println(listeAretes);
 			int idMinimun = listeAretes.stream()
 					.filter(arete -> !sommetVisiter.contains(arete.getDestination()) || !sommetVisiter.contains(arete.getSource()) )
 					.min(Comparator.comparing(Arete::getPoids))
@@ -253,6 +275,32 @@ public class Graphe {
 		
 		return chemin;
 	}
+	
+	public ArrayList<String> getEnsemble (ArrayList<Arete> aretes){
+		ArrayList<String> aretesChoisi = new ArrayList<String>();
+		aretesChoisi.add(aretes.get(0).getSource().getNom());
+		
+		boolean nouveauSommetDetecter = true;
+		while(nouveauSommetDetecter) {
+			nouveauSommetDetecter = false;
+			
+			for (Arete arete : aretes) {
+				
+				if(!aretesChoisi.contains(arete.getSource().getNom()) &&  aretesChoisi.contains(arete.getDestination().getNom())) {
+					aretesChoisi.add(arete.getSource().getNom());
+					nouveauSommetDetecter = true;
+				}
+				
+				else if(aretesChoisi.contains(arete.getSource().getNom()) &&  !aretesChoisi.contains(arete.getDestination().getNom())) {
+					aretesChoisi.add(arete.getDestination().getNom());
+					nouveauSommetDetecter = true;
+				}
+			}
+		}
+		
+		return aretesChoisi;
+	}
+	
 	
 	/**
 	 * Contruit et renvoie le graphe de départ

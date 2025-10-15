@@ -133,7 +133,14 @@ public class Sommet {
 		Sommet other = (Sommet) obj;
 		return Objects.equals(nom, other.nom);
 	}
+
+	@Override
+	public String toString() {
+		return "Sommet [nom=" + nom ;
+	}
     
+	
+	
     
     
     
