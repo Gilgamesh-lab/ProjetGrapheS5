@@ -49,7 +49,14 @@ public class Sommet {
     public ArrayList<Sommet> getVoisins(){
     	ArrayList<Sommet> voisins = new ArrayList<Sommet>();
     	for (Arete arete : this.aretes) {
-    		if(arete.getDestination() != this) {
+    		
+    		if(arete.EstOrienter() ) {
+    			if(arete.getDestination() != this) {
+    				voisins.add(arete.getDestination());
+    			}
+    		}
+    		
+    		else if(arete.getDestination() != this) {
     			voisins.add(arete.getDestination());
     		}
     		else {

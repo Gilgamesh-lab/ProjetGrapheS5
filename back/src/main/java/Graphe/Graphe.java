@@ -150,8 +150,7 @@ public class Graphe {
 		ArrayList<Sommet> sommetVisiter = new ArrayList<Sommet>();
 		ArrayList<Arete> aretes = new ArrayList<Arete>();
 		
-		int i = 0 ;
-		while (i != (this.getSommetsTrier().size() - 1)) {
+		while (aretes.size() != (this.getSommetsTrier().size() - 1)) {
 			//System.out.println(sommetVisiter);
 			Arete arete = null;
 			try {
@@ -160,12 +159,7 @@ public class Graphe {
 			catch (NoSuchElementException e) { // cas où deux arbres non connectés se sont crées
 				ArrayList<String> sommets = this.getEnsemble(aretes);
 				for (Arete arete2 : aretesTrierParPoids) {
-					if(!sommets.contains(arete2.getDestination().getNom())  && sommets.contains(arete2.getSource().getNom())){
-						arete = arete2;
-						break;
-					}
-					
-					else if(sommets.contains(arete2.getDestination().getNom()) && !sommets.contains(arete2.getSource().getNom())){
+					if(sommets.contains(arete2.getDestination().getNom()) != sommets.contains(arete2.getSource().getNom())){
 						arete = arete2;
 						break;
 					}
@@ -183,8 +177,6 @@ public class Graphe {
 				sommetVisiter.add(arete.getDestination());
 			}
 			aretes.add(arete);
-			
-			i++;
 		}
 		
 		return aretes;

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Main  {
 	public static void main(String[] args) {
-		Graphe graphe = Graphe.getDefaultGraphe();
+		/*Graphe graphe = Graphe.getDefaultGraphe();
 		
 		System.out.println();
 		System.out.println("Parcours en largeur");
@@ -39,7 +39,19 @@ public class Main  {
 		aretes = graphe.getPrim("Rennes"); 
 		aretes.stream().forEach(arete -> System.out.println(arete.getSource().getNom() + " -> " + arete.getDestination().getNom() + " : " + arete.getPoids()));
 		System.out.println();
-		System.out.println("Poids total du plus court chemin trouvé = " + aretes.stream().mapToInt(arete -> arete.getPoids()).sum());
+		System.out.println("Poids total du plus court chemin trouvé = " + aretes.stream().mapToInt(arete -> arete.getPoids()).sum());*/
+		
+		ArrayList<Sommet> sommets = new ArrayList<Sommet>();
+		
+		Sommet a = new Sommet("a", null, sommets);
+		Sommet b = new Sommet("b", null, sommets);
+		Sommet c = new Sommet("c", null, sommets);
+		
+		new Arete(a, b, true, 130);
+		new Arete(b, c, true, 90);
+		new Arete(c, a, true, 100);
+		
+		Graphe graphe = new Graphe(sommets);
 		
 
 		
