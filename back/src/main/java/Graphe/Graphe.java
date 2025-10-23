@@ -251,16 +251,21 @@ public class Graphe {
 	public void getDijkstra(String villeDeDepart, String villeDArrive) {
 		HashMap<String, HashMap<String, Paire>> tableau = new HashMap<String, HashMap<String, Paire>>();
 		Paire[][] tab = new Paire[6][6];
-		ArrayList<Integer> poidsMinimun;
+		//ArrayList<Arete> poidsMinimun =  new ArrayList<Arete>();
+		
+		
 		
 		Sommet depart = this.getSommetsTrier().stream().filter(sommet -> sommet.getNom() == villeDeDepart).findFirst().get();
 		Sommet sommet = depart;
+		Sommet minimun = depart;
+		
+		ArrayList<Sommet> sommetFait =  new ArrayList<Sommet>();
 		int poidSommet = 0;
-		for (int i = 0 ; i < 1 ; i++) { //i < this.getSommetsTrier().size()
-			poidsMinimun = new ArrayList<Integer>();
+		for (int i = 0 ; i < 4 ; i++) { //i < this.getSommetsTrier().size()
+			
 			for (int k = 0 ; k < sommet.getAretesSansDoublons().size() ; k++) { //k < sommet.getAretesSansDoublons().size()
 				if(sommet.getAretesSansDoublons().get(k).getDestination() != sommet) {
-					poidsMinimun.add(sommet.getAretesSansDoublons().get(k).getPoids());
+					//poidsMinimun.add(sommet.getAretesSansDoublons().get(k).getPoids());
 					//System.out.println(sommet.getAretesSansDoublons().get(k).getDestination() + "=>(" + sommet.getAretesSansDoublons().get(k).getPoids() + ", " + sommet.getAretesSansDoublons().get(k).getSource() + ")");
 					
 					if(tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()) == null ||  tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()).get(sommet.getAretesSansDoublons().get(k).getDestination().getNom()) == null) {
@@ -273,23 +278,38 @@ public class Graphe {
 					}
 					
 					
-					/*else if(tableau.get(sommet.getNom()).get(sommet.getAretesSansDoublons().get(k).getDestination().getNom()).getSommetD() == sommet.getAretesSansDoublons().get(k).getDestination()) {
-						if(tableau.get(sommet.getNom()).get(sommet.getAretesSansDoublons().get(k).getDestination().getNom()).getPoids() > sommet.getAretesSansDoublons().get(k).getPoids() + poidSommet) {
-							tableau.get(sommet.getAretesSansDoublons().get(k).getDestination().getNom()).put(sommet.getNom(), new Paire(sommet.getAretesSansDoublons().get(k).getPoids() + poidSommet, sommet.getAretesSansDoublons().get(k).getSource(), sommet.getAretesSansDoublons().get(k).getDestination()));
+					else if(tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()).get(sommet.getAretesSansDoublons().get(k).getDestination().getNom()).getSommetD() == sommet.getAretesSansDoublons().get(k).getDestination()) {
+						if(tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()).get(sommet.getAretesSansDoublons().get(k).getDestination().getNom()).getPoids() > sommet.getAretesSansDoublons().get(k).getPoids() + poidSommet) {
+							tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()).put(sommet.getNom(), new Paire(sommet.getAretesSansDoublons().get(k).getPoids() + poidSommet, sommet.getAretesSansDoublons().get(k).getSource(), sommet.getAretesSansDoublons().get(k).getDestination()));
 						}
-					}*/
+					}
+					
+					//poidsMinimun.add(sommet.getAretesSansDoublons().get(k));
+					
 					/*if()
 					tab[i][k] = new Paire(sommet.getAretesSansDoublons().get(k).getPoids(), sommet.getAretesSansDoublons().get(k).getSource() );
 				*/
 				}
 				
 			}
-			sommet = sommet.getVoisins().get(0);
-			System.out.println();
+			
+			System.out.println(sommet.getNom() + "," + sommet.getAretesSansDoublons().stream().filter(sommet2 -> !sommet2.getDestination().isMarquer()).min(Comparator.comparingInt(arete -> arete.getPoids())).get().getDestination());
+			sommet = sommet.getAretesSansDoublons().stream().filter(sommet2 -> !sommet2.getDestination().isMarquer()).min(Comparator.comparingInt(arete -> arete.getPoids())).get().getDestination();
+			poidSommet = sommet.getAretesSansDoublons().stream().filter(sommet2 -> !sommet2.getDestination().isMarquer()).min(Comparator.comparingInt(arete -> arete.getPoids())).get().getPoids();
+			sommet.setMarquer(true);
+			
+			
 			
 		}
 		
 		System.out.println(tableau);
+		for (String key : tableau.keySet() ){
+			System.out.print(key + " : ");
+			for (String key2 : tableau.get(key).keySet() ){
+				System.out.print(tableau.get(key).get(key2) + " , ");
+			}
+			System.out.println();
+		}
 		
 		/*for (int i = 0 ; i < tab.length ; i++) {
 			for (int k = 0 ; k < tab[0].length ; k++) {
