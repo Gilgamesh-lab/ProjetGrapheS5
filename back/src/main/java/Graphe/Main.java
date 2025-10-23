@@ -43,16 +43,27 @@ public class Main  {
 		
 		ArrayList<Sommet> sommets = new ArrayList<Sommet>();
 		
-		Sommet a = new Sommet("a", null, sommets);
-		Sommet b = new Sommet("b", null, sommets);
-		Sommet c = new Sommet("c", null, sommets);
+		Sommet s1 = new Sommet("s1", null, sommets);
+		Sommet s2 = new Sommet("s2", null, sommets);
+		Sommet s3 = new Sommet("s3", null, sommets);
+		Sommet s4 = new Sommet("s4", null, sommets);
+		Sommet s5 = new Sommet("s5", null, sommets);
 		
-		new Arete(a, b, true, 130);
-		new Arete(b, c, true, 90);
-		new Arete(c, a, true, 100);
+		new Arete(s1, s4, true, 3);
+		new Arete(s1, s2, true, 1);
+		new Arete(s1, s3, true, 5);
+		
+		new Arete(s2, s4, true, 1);
+		new Arete(s2, s5, true, 3);
+		
+		new Arete(s3, s5, true, 2);
+		new Arete(s3, s2, true, 3);
+		
+		new Arete(s4, s5, true, 1);
+		new Arete(s4, s3, true, 2);
 		
 		Graphe graphe = new Graphe(sommets);
-		
+		graphe.getDijkstra("s1", null);
 
 		
 

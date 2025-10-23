@@ -3,6 +3,7 @@ package Graphe;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
@@ -247,6 +248,58 @@ public class Graphe {
 		
 	}
 	
+	public void getDijkstra(String villeDeDepart, String villeDArrive) {
+		HashMap<String, HashMap<String, Paire>> tableau = new HashMap<String, HashMap<String, Paire>>();
+		Paire[][] tab = new Paire[6][6];
+		ArrayList<Integer> poidsMinimun;
+		
+		Sommet depart = this.getSommetsTrier().stream().filter(sommet -> sommet.getNom() == villeDeDepart).findFirst().get();
+		Sommet sommet = depart;
+		int poidSommet = 0;
+		for (int i = 0 ; i < 1 ; i++) { //i < this.getSommetsTrier().size()
+			poidsMinimun = new ArrayList<Integer>();
+			for (int k = 0 ; k < sommet.getAretesSansDoublons().size() ; k++) { //k < sommet.getAretesSansDoublons().size()
+				if(sommet.getAretesSansDoublons().get(k).getDestination() != sommet) {
+					poidsMinimun.add(sommet.getAretesSansDoublons().get(k).getPoids());
+					//System.out.println(sommet.getAretesSansDoublons().get(k).getDestination() + "=>(" + sommet.getAretesSansDoublons().get(k).getPoids() + ", " + sommet.getAretesSansDoublons().get(k).getSource() + ")");
+					
+					if(tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()) == null ||  tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()).get(sommet.getAretesSansDoublons().get(k).getDestination().getNom()) == null) {
+						if(tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()) == null) {
+							tableau.put(sommet.getAretesSansDoublons().get(k).getSource().getNom(), new HashMap<String, Paire>());
+						}
+						
+						tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()).put(sommet.getAretesSansDoublons().get(k).getDestination().getNom(), new Paire(sommet.getAretesSansDoublons().get(k).getPoids() + poidSommet, sommet.getAretesSansDoublons().get(k).getSource(), sommet.getAretesSansDoublons().get(k).getDestination())) ;
+						//System.out.println(tableau.get(sommet.getNom()));
+					}
+					
+					
+					/*else if(tableau.get(sommet.getNom()).get(sommet.getAretesSansDoublons().get(k).getDestination().getNom()).getSommetD() == sommet.getAretesSansDoublons().get(k).getDestination()) {
+						if(tableau.get(sommet.getNom()).get(sommet.getAretesSansDoublons().get(k).getDestination().getNom()).getPoids() > sommet.getAretesSansDoublons().get(k).getPoids() + poidSommet) {
+							tableau.get(sommet.getAretesSansDoublons().get(k).getDestination().getNom()).put(sommet.getNom(), new Paire(sommet.getAretesSansDoublons().get(k).getPoids() + poidSommet, sommet.getAretesSansDoublons().get(k).getSource(), sommet.getAretesSansDoublons().get(k).getDestination()));
+						}
+					}*/
+					/*if()
+					tab[i][k] = new Paire(sommet.getAretesSansDoublons().get(k).getPoids(), sommet.getAretesSansDoublons().get(k).getSource() );
+				*/
+				}
+				
+			}
+			sommet = sommet.getVoisins().get(0);
+			System.out.println();
+			
+		}
+		
+		System.out.println(tableau);
+		
+		/*for (int i = 0 ; i < tab.length ; i++) {
+			for (int k = 0 ; k < tab[0].length ; k++) {
+				System.out.println(tab[i][k]);
+			}
+			
+		}*/
+		
+	}
+	
 	/**
 	 * Visite de façon récursive un sommet et tout ses enfants
 	 * @param sommet le sommet à visiter et qui va servir de point de départ du parcours en profondeur
@@ -346,6 +399,8 @@ public class Graphe {
 		
 		return graphe;
 	}
+	
+	
 
 	@Override
 	public String toString() {

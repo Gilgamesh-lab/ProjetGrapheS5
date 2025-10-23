@@ -94,6 +94,10 @@ public class Sommet {
 	public ArrayList<Arete> getAretes() {
 		return (ArrayList<Arete>) this.aretes.stream().sorted(Comparator.comparingInt(arete -> arete.getId())).collect(Collectors.toList());
 	}
+	
+	public ArrayList<Arete> getAretesSansDoublons(){
+		return (ArrayList<Arete>) this.getAretes().stream().distinct().collect(Collectors.toList());
+	}
 
 
 
