@@ -4,6 +4,7 @@ package Graphe;
 public class Resultat {
 	private Graphe graphe;
 	private String chemin;
+	private int poids;
 	
 	
 	public Resultat(Graphe graphe, String chemin) {
@@ -14,7 +15,17 @@ public class Resultat {
 	public Resultat() {
 		
 	}
+	
+	
 
+
+	public int getPoids() {
+		return poids;
+	}
+
+	public void setPoids(int poids) {
+		this.poids = poids;
+	}
 
 	public Graphe getGraphe() {
 		return graphe;

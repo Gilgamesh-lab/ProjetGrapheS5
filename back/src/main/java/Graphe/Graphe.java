@@ -7,10 +7,6 @@ import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-import SpringBot.GrapheDeSortie.AreteDeSortie;
-import SpringBot.GrapheDeSortie.GrapheDeSortie;
-import SpringBot.GrapheDeSortie.SommetDeSortie;
-
 
 public class Graphe {
     private ArrayList<Sommet> sommets;
@@ -33,6 +29,10 @@ public class Graphe {
 
 	public void setSommets(ArrayList<Sommet> sommets) {
 		this.sommets = sommets;
+	}
+	
+	public void reset() {
+		this.getSommetsTrier().forEach(sommet -> sommet.setMarquer(false));
 	}
 	
 	public void ajouterSommet(Sommet sommet) {
@@ -81,29 +81,7 @@ public class Graphe {
 		return (ArrayList<Arete>) this.getAretes().stream().distinct().collect(Collectors.toList());
 	}
 	
-	/**
-	 * Convertit un Graphe en GrapheDeSorti (un format qui peut-être envoyé au front)
-	 * @return le graphe de sortie
-	 */
-	public GrapheDeSortie getGrapheSortie() {
-		GrapheDeSortie grapheDeSortie = new GrapheDeSortie();
-		SommetDeSortie sommmetDeSortie;
-		
-		for (Sommet sommet : this.sommets) {
-			sommmetDeSortie = new SommetDeSortie(sommet.getNom(), null);
-			grapheDeSortie.ajouterSommet(sommmetDeSortie);
-		}
-		ArrayList<Integer> dejaVue = new ArrayList<Integer>();
-		for (Arete arete : this.getAretes()) {
-			if(!dejaVue.contains(arete.getId())) {
-				new AreteDeSortie(grapheDeSortie.getSommetParNom(arete.getSource().getNom()), grapheDeSortie.getSommetParNom(arete.getDestination().getNom()), arete.isEstOrienter() , arete.getPoids());
-				dejaVue.add(arete.getId());
-			}
-			
-		}
-		
-		return grapheDeSortie;
-	}
+	
 	
 	/**
 	 * Applique un parcours en largeur sur le graphe et renvoie le chemin et le graphe obtenue grâce au parcours en largeur
@@ -111,6 +89,7 @@ public class Graphe {
 	 * @return un objet de type Resultat contenant le chemin et le graphe obtenue grâce au parcours en largeur
 	 */
 	public Resultat getBFS(String nomPointDepart) {
+		this.reset();
 		Sommet s = this.getSommetsTrier().stream().filter(sommet -> sommet.getNom() == nomPointDepart).findFirst().get();
 		String chemin = s.getNom();
 		Graphe grapheBFS = new Graphe();
@@ -223,10 +202,6 @@ public class Graphe {
 		
 	}
 	
-	public void getPlusPetiteArete(ArrayList<Arete> aretes) {
-		
-	}
-	
 	/**
 	 * Applique un parcours en profondeur sur le graphe et renvoie le chemin et le graphe obtenue grâce au parcours en profondeur
 	 * @param nomPointDepart le nom du point à partir du quelle partir
@@ -248,77 +223,84 @@ public class Graphe {
 		
 	}
 	
-	public void getDijkstra(String villeDeDepart, String villeDArrive) {
-		HashMap<String, HashMap<String, Paire>> tableau = new HashMap<String, HashMap<String, Paire>>();
-		Paire[][] tab = new Paire[6][6];
-		//ArrayList<Arete> poidsMinimun =  new ArrayList<Arete>();
-		
-		
-		
+	public Resultat getDijkstra(String villeDeDepart, String villeDArrive) {
+		this.reset();
 		Sommet depart = this.getSommetsTrier().stream().filter(sommet -> sommet.getNom() == villeDeDepart).findFirst().get();
 		Sommet sommet = depart;
-		Sommet minimun = depart;
+		HashMap<String, Integer> distanceMinimale = new HashMap<String, Integer>();
+		HashMap<String, Sommet> predecesseur = new HashMap<String, Sommet>();
 		
-		ArrayList<Sommet> sommetFait =  new ArrayList<Sommet>();
-		int poidSommet = 0;
-		for (int i = 0 ; i < 4 ; i++) { //i < this.getSommetsTrier().size()
-			
-			for (int k = 0 ; k < sommet.getAretesSansDoublons().size() ; k++) { //k < sommet.getAretesSansDoublons().size()
-				if(sommet.getAretesSansDoublons().get(k).getDestination() != sommet) {
-					//poidsMinimun.add(sommet.getAretesSansDoublons().get(k).getPoids());
-					//System.out.println(sommet.getAretesSansDoublons().get(k).getDestination() + "=>(" + sommet.getAretesSansDoublons().get(k).getPoids() + ", " + sommet.getAretesSansDoublons().get(k).getSource() + ")");
-					
-					if(tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()) == null ||  tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()).get(sommet.getAretesSansDoublons().get(k).getDestination().getNom()) == null) {
-						if(tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()) == null) {
-							tableau.put(sommet.getAretesSansDoublons().get(k).getSource().getNom(), new HashMap<String, Paire>());
-						}
-						
-						tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()).put(sommet.getAretesSansDoublons().get(k).getDestination().getNom(), new Paire(sommet.getAretesSansDoublons().get(k).getPoids() + poidSommet, sommet.getAretesSansDoublons().get(k).getSource(), sommet.getAretesSansDoublons().get(k).getDestination())) ;
-						//System.out.println(tableau.get(sommet.getNom()));
-					}
-					
-					
-					else if(tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()).get(sommet.getAretesSansDoublons().get(k).getDestination().getNom()).getSommetD() == sommet.getAretesSansDoublons().get(k).getDestination()) {
-						if(tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()).get(sommet.getAretesSansDoublons().get(k).getDestination().getNom()).getPoids() > sommet.getAretesSansDoublons().get(k).getPoids() + poidSommet) {
-							tableau.get(sommet.getAretesSansDoublons().get(k).getSource().getNom()).put(sommet.getNom(), new Paire(sommet.getAretesSansDoublons().get(k).getPoids() + poidSommet, sommet.getAretesSansDoublons().get(k).getSource(), sommet.getAretesSansDoublons().get(k).getDestination()));
-						}
-					}
-					
-					//poidsMinimun.add(sommet.getAretesSansDoublons().get(k));
-					
-					/*if()
-					tab[i][k] = new Paire(sommet.getAretesSansDoublons().get(k).getPoids(), sommet.getAretesSansDoublons().get(k).getSource() );
-				*/
-				}
-				
+		int valeurMax = Integer.MAX_VALUE / 2;
+		
+		for (Sommet s : this.getSommetsTrier() ) {
+			if(s == depart){
+				distanceMinimale.put(s.getNom(), 0);
+			}
+			else {
+				distanceMinimale.put(s.getNom(), valeurMax);
+				predecesseur.put(s.getNom(), null);
 			}
 			
-			System.out.println(sommet.getNom() + "," + sommet.getAretesSansDoublons().stream().filter(sommet2 -> !sommet2.getDestination().isMarquer()).min(Comparator.comparingInt(arete -> arete.getPoids())).get().getDestination());
-			sommet = sommet.getAretesSansDoublons().stream().filter(sommet2 -> !sommet2.getDestination().isMarquer()).min(Comparator.comparingInt(arete -> arete.getPoids())).get().getDestination();
-			poidSommet = sommet.getAretesSansDoublons().stream().filter(sommet2 -> !sommet2.getDestination().isMarquer()).min(Comparator.comparingInt(arete -> arete.getPoids())).get().getPoids();
+		}
+		
+		int poidsS;
+		
+		while(this.getSommetsTrier().stream().anyMatch(s -> !s.isMarquer())) {
+			sommet = this.getSommetsTrier().stream().filter(s -> !s.isMarquer()).min(Comparator.comparingInt(s -> distanceMinimale.get(s.getNom()) )).get();
 			sommet.setMarquer(true);
 			
+			if(distanceMinimale.get(sommet.getNom()) == valeurMax) {
+				poidsS = 0;
+			} 
+			else {
+				poidsS  = distanceMinimale.get(sommet.getNom());
+			}
 			
+			
+			
+			for (Arete arete : sommet.getAretes()) {
+				
+				
+				if(arete.getDestination() != sommet )  {
+					if(  distanceMinimale.get(arete.getDestination().getNom()) > poidsS  + arete.getPoids()) {
+						distanceMinimale.put(arete.getDestination().getNom(), poidsS  + arete.getPoids());
+						predecesseur.put(arete.getDestination().getNom(), sommet);
+					}
+				}
+				
+				else {
+					if( distanceMinimale.get(arete.getSource().getNom()) > poidsS  + arete.getPoids()) {
+						distanceMinimale.put(arete.getSource().getNom(), poidsS  + arete.getPoids());
+						predecesseur.put(arete.getSource().getNom(), sommet);
+					}
+				}
+			}
+		
+		
+		
+		}
+		
+		Sommet arrive = this.getSommetsTrier().stream().filter(s -> s.getNom() == villeDArrive).findFirst().get();
+		
+		Sommet prede = predecesseur.get(arrive.getNom());
+		String chemin = arrive.getNom() + " -> " + prede.getNom();
+		
+		while (prede != depart) {
+			prede = predecesseur.get(prede.getNom());
+			chemin += " -> " + prede.getNom();
 			
 		}
 		
-		System.out.println(tableau);
-		for (String key : tableau.keySet() ){
-			System.out.print(key + " : ");
-			for (String key2 : tableau.get(key).keySet() ){
-				System.out.print(tableau.get(key).get(key2) + " , ");
-			}
-			System.out.println();
-		}
+		System.out.println(chemin);
 		
-		/*for (int i = 0 ; i < tab.length ; i++) {
-			for (int k = 0 ; k < tab[0].length ; k++) {
-				System.out.println(tab[i][k]);
-			}
-			
-		}*/
+		Resultat resultat = new Resultat();
+		resultat.setChemin(chemin);
+		resultat.setPoids(distanceMinimale.get(arrive.getNom()));
+		return resultat;
+		
 		
 	}
+	
 	
 	/**
 	 * Visite de façon récursive un sommet et tout ses enfants
@@ -413,6 +395,59 @@ public class Graphe {
 		new Arete(lyon, grenoble, false, 40);
 		new Arete(grenoble, nancy, false, 80);
 		new Arete(lille, nancy, false, 100);
+		
+		
+		Graphe graphe = new Graphe(sommets);
+		
+		return graphe;
+	}
+	
+	/**
+	 * Contruit et renvoie le graphe de départ
+	 * @return le graphe de départ
+	 */
+	public static Graphe getDefaultGrapheOrienter() {
+		
+		ArrayList<Sommet> sommets = new ArrayList<Sommet>();
+		Sommet bordeaux = new Sommet("Bordeaux", null, sommets);
+		Sommet rennes = new Sommet("Rennes", null, sommets);
+		Sommet nantes = new Sommet("Nantes", null, sommets);
+		
+		Sommet caen = new Sommet("Caen", null, sommets);
+		Sommet paris = new Sommet("Paris", null, sommets);
+		Sommet dijon = new Sommet("Dijon", null, sommets);
+		
+		Sommet lyon = new Sommet("Lyon", null, sommets);
+		Sommet lille = new Sommet("Lille", null, sommets);
+		Sommet nancy = new Sommet("Nancy", null, sommets);
+		
+		Sommet grenoble = new Sommet("Grenoble", null, sommets);
+		
+		new Arete(bordeaux, rennes, true, 130);
+		new Arete(bordeaux, nantes, true, 90);
+		new Arete(bordeaux, lyon, true, 100);
+		new Arete(bordeaux, paris, true, 150);
+		
+		new Arete(rennes, nantes, true, 45);
+		new Arete(rennes, caen, true, 75);
+		new Arete(rennes, paris, true, 110);
+		
+		new Arete(nantes, paris, true, 80);
+		new Arete(caen, lille, true, 65);
+		new Arete(caen, paris, true, 50);
+		
+		new Arete(paris, lille, true, 70);
+		new Arete(paris, dijon, true, 60);
+		new Arete(dijon, lille, true, 120);
+		
+		new Arete(dijon, nancy, true, 75);
+		new Arete(dijon, grenoble, true, 75);
+		new Arete(dijon, lyon, true, 70);
+		
+		new Arete(lyon, nancy, true, 90);
+		new Arete(lyon, grenoble, true, 40);
+		new Arete(grenoble, nancy, true, 80);
+		new Arete(lille, nancy, true, 100);
 		
 		
 		Graphe graphe = new Graphe(sommets);

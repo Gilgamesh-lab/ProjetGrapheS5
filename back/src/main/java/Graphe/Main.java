@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Main  {
 	public static void main(String[] args) {
-		/*Graphe graphe = Graphe.getDefaultGraphe();
+		Graphe graphe = Graphe.getDefaultGraphe();
 		
 		System.out.println();
 		System.out.println("Parcours en largeur");
@@ -39,9 +39,9 @@ public class Main  {
 		aretes = graphe.getPrim("Rennes"); 
 		aretes.stream().forEach(arete -> System.out.println(arete.getSource().getNom() + " -> " + arete.getDestination().getNom() + " : " + arete.getPoids()));
 		System.out.println();
-		System.out.println("Poids total du plus court chemin trouvé = " + aretes.stream().mapToInt(arete -> arete.getPoids()).sum());*/
+		System.out.println("Poids total du plus court chemin trouvé = " + aretes.stream().mapToInt(arete -> arete.getPoids()).sum());
 		
-		ArrayList<Sommet> sommets = new ArrayList<Sommet>();
+		/*ArrayList<Sommet> sommets = new ArrayList<Sommet>();
 		
 		Sommet s1 = new Sommet("s1", null, sommets);
 		Sommet s2 = new Sommet("s2", null, sommets);
@@ -60,10 +60,14 @@ public class Main  {
 		new Arete(s3, s2, true, 3);
 		
 		new Arete(s4, s5, true, 1);
-		new Arete(s4, s3, true, 2);
+		new Arete(s4, s3, true, 2);*/
 		
-		Graphe graphe = new Graphe(sommets);
-		graphe.getDijkstra("s1", null);
+		//Graphe graphe = new Graphe(sommets);
+		
+		System.out.println();
+		Resultat resultat = graphe.getDijkstra("Bordeaux", "Lille");
+		
+		System.out.println("Le chemin le plus court trouvé entre Bordeaux et Lille est : " + resultat.getChemin() + " avec un poids minimun de " + resultat.getPoids() );
 
 		
 
