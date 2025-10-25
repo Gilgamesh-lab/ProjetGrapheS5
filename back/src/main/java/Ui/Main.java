@@ -1,16 +1,16 @@
-package ui;
+package Ui;
 
 import Graphe.*;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.Pane;
 
 public class Main extends Application {
 
@@ -32,23 +32,32 @@ public class Main extends Application {
 
         Button runButton = new Button("Exécuter l'algo");
         runButton.setDisable(true);
+
+        Button resetButton = new Button("Relancer simulation");
+        resetButton.setDisable(true);
+
         runButton.setOnAction(e -> {
             String algo = algoMenu.getValue();
+            grapheView.resetGraph(); // reset automatique avant nouvel algo
+
             switch(algo) {
                 case "BFS":
                     Resultat bfs = graphe.getBFS("Paris");
-                    grapheView.highlightPath(bfs.getGraphe());
+                    System.out.println("BFS arêtes : " + bfs.getGraphe().getAretes().size());
+                    grapheView.runAlgorithmStepByStep(bfs.getGraphe());
                     break;
                 case "DFS":
                     Resultat dfs = graphe.getDFS("Paris");
-                    grapheView.highlightPath(dfs.getGraphe());
+                    System.out.println("DFS arêtes : " + dfs.getGraphe().getAretes().size());
+                    grapheView.runAlgorithmStepByStep(dfs.getGraphe());
                     break;
             }
         });
 
-        Button resetButton = new Button("Relancer simulation");
-        resetButton.setDisable(true);
-        resetButton.setOnAction(e -> grapheView.startSimulation());
+        resetButton.setOnAction(e -> {
+            grapheView.resetGraph();
+            grapheView.startSimulation();
+        });
 
         HBox controls = new HBox(10, algoMenu, runButton, resetButton);
         StackPane graphPane = new StackPane(graphRoot);
@@ -56,7 +65,7 @@ public class Main extends Application {
 
         root.getChildren().addAll(controls, graphPane);
         stage.setScene(scene);
-        stage.setTitle("Simulation Graphe Routier - JavaFX");
+        stage.setTitle("Simulation Graphe ");
         stage.show();
 
         // activer boutons après stabilisation

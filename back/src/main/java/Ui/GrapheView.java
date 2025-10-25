@@ -1,7 +1,8 @@
-package ui;
+package Ui;
 
 import Graphe.*;
 import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -27,14 +28,22 @@ public class GrapheView {
     private AnimationTimer timer;
     private Runnable onStableCallback;
 
+    // Timer pour animation des arêtes
+    private Queue<Arete> pathQueue;
+    private AnimationTimer pathTimer;
+
     // Paramètres physiques
     private static final double WIDTH = 1000;
     private static final double HEIGHT = 700;
     private static final double REPULSION = 60000;
-    private static final double SPRING_LENGTH = 150;
+    private static final double SPRING_LENGTH = 200;
     private static final double SPRING_STRENGTH = 0.02;
     private static final double DAMPING = 0.8;
-    private static final double SCALE = 0.05;
+    private static final double SCALE = 0.07;
+
+    private int stableFrames = 0;
+    private static final double STABLE_THRESHOLD = 1.2; // vitesse moyenne minimale
+    private static final int STABLE_FRAME_COUNT = 10;   // nombre de frames calmes avant arrêt
 
     public GrapheView(Graphe graphe, Group root) {
         this.graphe = graphe;
@@ -59,10 +68,18 @@ public class GrapheView {
             n.x = rand.nextDouble() * WIDTH;
             n.y = rand.nextDouble() * HEIGHT;
             n.vx = n.vy = 0;
-            n.circle = new Circle(n.x, n.y, 18, Color.LIGHTBLUE);
-            n.circle.setVisible(true); // toujours visible
-            n.label = new Text(n.x - 15, n.y + 5, s.getNom());
-            n.label.setVisible(true); // toujours visible
+            n.circle = new Circle(n.x, n.y, 28, Color.LIGHTBLUE);
+            n.circle.setVisible(true);
+            n.label = new Text(s.getNom());
+            n.label.setVisible(true);
+            n.label.setFill(Color.BLACK);
+            n.label.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+
+            double textWidth = n.label.getLayoutBounds().getWidth();
+            double textHeight = n.label.getLayoutBounds().getHeight();
+            n.label.setX(n.x - textWidth / 2);
+            n.label.setY(n.y + textHeight / 4);
+
             nodes.put(s.getNom(), n);
             root.getChildren().addAll(n.circle, n.label);
         }
@@ -72,14 +89,25 @@ public class GrapheView {
             Node src = nodes.get(a.getSource().getNom());
             Node dst = nodes.get(a.getDestination().getNom());
             Line line = new Line(src.x, src.y, dst.x, dst.y);
-            line.setStroke(Color.GRAY); // visible dès le départ
+            line.setStroke(Color.GRAY);
             edges.add(line);
             root.getChildren().add(0, line);
 
-            // texte distance
-            Text distanceText = new Text((src.x + dst.x)/2, (src.y + dst.y)/2, String.valueOf(a.getPoids()));
-            distanceText.setFill(Color.BLACK);
-            distanceText.setVisible(false); // caché pendant simulation
+            double mx = (src.x + dst.x) / 2;
+            double my = (src.y + dst.y) / 2;
+
+            double dx = dst.x - src.x;
+            double dy = dst.y - src.y;
+            double dist = Math.sqrt(dx * dx + dy * dy);
+
+            double nx = -dy / dist;
+            double ny = dx / dist;
+            double offset = 10;
+
+            Text distanceText = new Text(mx + nx * offset, my + ny * offset, String.valueOf(a.getPoids()));
+            distanceText.setFill(Color.DARKBLUE);
+            distanceText.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
+            distanceText.setVisible(false);
             edgeLabels.add(distanceText);
             root.getChildren().add(distanceText);
         }
@@ -91,7 +119,25 @@ public class GrapheView {
             public void handle(long now) {
                 updatePhysics();
                 updateUI();
-                if (isStable()) stop();
+
+                double totalV = 0;
+                for (Node n : nodes.values()) {
+                    totalV += Math.sqrt(n.vx * n.vx + n.vy * n.vy);
+                }
+                double avgV = totalV / nodes.size();
+
+                if (avgV < STABLE_THRESHOLD) stableFrames++;
+                else stableFrames = 0;
+
+                if (stableFrames > STABLE_FRAME_COUNT) {
+                    timer.stop();
+                    for (Text t : edgeLabels) t.setVisible(true);
+
+                    if (onStableCallback != null) {
+                        onStableCallback.run();
+                        onStableCallback = null;
+                    }
+                }
             }
         };
         timer.start();
@@ -135,7 +181,6 @@ public class GrapheView {
             dst.vy -= fy;
         }
 
-        // mise à jour positions
         for (Node n : nodes.values()) {
             n.vx *= DAMPING;
             n.vy *= DAMPING;
@@ -151,8 +196,10 @@ public class GrapheView {
         for (Node n : nodes.values()) {
             n.circle.setCenterX(n.x);
             n.circle.setCenterY(n.y);
-            n.label.setX(n.x - 15);
-            n.label.setY(n.y + 5);
+            double textWidth = n.label.getLayoutBounds().getWidth();
+            double textHeight = n.label.getLayoutBounds().getHeight();
+            n.label.setX(n.x - textWidth / 2);
+            n.label.setY(n.y + textHeight / 4);
         }
 
         for (int i = 0; i < graphe.getAretes().size(); i++) {
@@ -166,43 +213,63 @@ public class GrapheView {
             line.setEndY(dst.y);
 
             Text text = edgeLabels.get(i);
-            text.setX((src.x + dst.x)/2);
-            text.setY((src.y + dst.y)/2);
+            double mx = (src.x + dst.x) / 2;
+            double my = (src.y + dst.y) / 2;
+            double dx = dst.x - src.x;
+            double dy = dst.y - src.y;
+            double dist = Math.sqrt(dx*dx + dy*dy);
+            double nx = -dy / dist;
+            double ny = dx / dist;
+            double offset = 19;
+
+            text.setX(mx + nx * offset);
+            text.setY(my + ny * offset);
         }
     }
 
-    private boolean isStable() {
-        double totalV = 0;
-        for (Node n : nodes.values()) {
-            totalV += Math.sqrt(n.vx*n.vx + n.vy*n.vy);
-        }
-        if (totalV < 0.5) {
-            if (onStableCallback != null) {
-                onStableCallback.run();
-                onStableCallback = null;
-            }
-            // afficher les distances seulement
-            for (Text t : edgeLabels) t.setVisible(true);
-            return true;
-        }
-        return false;
-    }
-
-    public void highlightPath(Graphe pathGraphe) {
+    public void resetGraph() {
         stopSimulation();
+        if (pathTimer != null) pathTimer.stop();
         for (Line line : edges) {
             line.setStroke(Color.GRAY);
             line.setStrokeWidth(1);
         }
-        for (Arete a : pathGraphe.getAretes()) {
-            for (int i = 0; i < graphe.getAretes().size(); i++) {
-                Arete orig = graphe.getAretes().get(i);
-                if ((orig.getSource() == a.getSource() && orig.getDestination() == a.getDestination()) ||
-                        (orig.getSource() == a.getDestination() && orig.getDestination() == a.getSource())) {
-                    edges.get(i).setStroke(Color.RED);
-                    edges.get(i).setStrokeWidth(3);
+    }
+
+    public void runAlgorithmStepByStep(Graphe pathGraphe) {
+        resetGraph();
+        pathQueue = new LinkedList<>(pathGraphe.getAretes());
+
+        pathTimer = new AnimationTimer() {
+            private long lastUpdate = 0;
+            @Override
+            public void handle(long now) {
+                if (now - lastUpdate < 300_000_000) return; // 300ms
+                lastUpdate = now;
+
+                Arete a = pathQueue.poll();
+                if (a == null) {
+                    stop();
+                    return;
+                }
+
+                for (int i = 0; i < graphe.getAretes().size(); i++) {
+                    Arete orig = graphe.getAretes().get(i);
+                    if ((orig.getSource().getNom().equals(a.getSource().getNom()) &&
+                            orig.getDestination().getNom().equals(a.getDestination().getNom())) ||
+                            (orig.getSource().getNom().equals(a.getDestination().getNom()) &&
+                                    orig.getDestination().getNom().equals(a.getSource().getNom()))) {
+                        Line line = edges.get(i);
+                        line.setStroke(Color.RED);
+                        line.setStrokeWidth(3);
+                        break;
+                    }
+
                 }
             }
-        }
+        };
+
+        pathTimer.start();
     }
+
 }
