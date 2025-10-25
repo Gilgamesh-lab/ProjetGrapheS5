@@ -67,9 +67,23 @@ public class Main  {
 		System.out.println();
 		Resultat resultat = graphe.getDijkstra("Bordeaux", "Lille");
 		
-		System.out.println("Le chemin le plus court trouvé entre Bordeaux et Lille est : " + resultat.getChemin() + " avec un poids minimun de " + resultat.getPoids() );
+		System.out.println("Le chemin le plus court trouvé entre Bordeaux et Lille avec l’algorithme de Dijkstra est : " + resultat.getChemin() + " avec un poids minimun de " + resultat.getPoids() );
+		
+		System.out.println();
+		graphe = Graphe.getDefaultGrapheOrienterNegatif();
+		resultat = graphe.getBellmanFord("Bordeaux", "Lille");
+		
+		System.out.println("Sur un graphe orienté avec des poids négatifs, le chemin le plus court trouvé entre Bordeaux et Lille avec l’algorithme de Bellman-Ford est : " + resultat.getChemin() + " avec un poids minimun de " + resultat.getPoids() );
 
 		
+		System.out.println();
+		resultat = graphe.getBellmanFord("Lille", "Bordeaux");
+		if(resultat == null) {
+			System.out.println("Aucun chemin n'a pu être trouvé entre Lille et Bordeaux");
+		}
+		else {
+			System.out.println("Sur un graphe orienté avec des poids négatifs, le chemin le plus court trouvé entre Bordeaux et Lille avec l’algorithme de Bellman-Ford est : " + resultat.getChemin() + " avec un poids minimun de " + resultat.getPoids() );
+		}
 
 	}
 

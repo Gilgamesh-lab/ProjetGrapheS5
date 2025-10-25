@@ -283,11 +283,11 @@ public class Graphe {
 		Sommet arrive = this.getSommetsTrier().stream().filter(s -> s.getNom() == villeDArrive).findFirst().get();
 		
 		Sommet prede = predecesseur.get(arrive.getNom());
-		String chemin = arrive.getNom() + " -> " + prede.getNom();
+		String chemin = prede.getNom() + " -> " + arrive.getNom()  ;
 		
 		while (prede != depart) {
 			prede = predecesseur.get(prede.getNom());
-			chemin += " -> " + prede.getNom();
+			chemin =  prede.getNom() + " -> " + chemin;
 			
 		}
 		
@@ -297,6 +297,64 @@ public class Graphe {
 		resultat.setChemin(chemin);
 		resultat.setPoids(distanceMinimale.get(arrive.getNom()));
 		return resultat;
+		
+		
+	}
+	
+	public Resultat getBellmanFord(String villeDeDepart, String villeDArrive) {
+		Sommet depart = this.getSommetsTrier().stream().filter(sommet -> sommet.getNom() == villeDeDepart).findFirst().get();
+		HashMap<String, Integer> distanceMinimale = new HashMap<String, Integer>();
+		HashMap<String, Sommet> predecesseur = new HashMap<String, Sommet>();
+		
+		int valeurMax = Integer.MAX_VALUE / 2;
+		
+		for (Sommet s : this.getSommetsTrier() ) {
+			if(s == depart){
+				distanceMinimale.put(s.getNom(), 0);
+			}
+			else {
+				distanceMinimale.put(s.getNom(), valeurMax);
+				predecesseur.put(s.getNom(), null);
+			}
+			
+		}
+		
+		boolean changement = true;
+		while(changement) {
+			changement = false;
+			for (Arete arete : this.getAretes()) {
+				if(  distanceMinimale.get(arete.getDestination().getNom()) > distanceMinimale.get(arete.getSource().getNom())  + arete.getPoids()) {
+					distanceMinimale.put(arete.getDestination().getNom(), distanceMinimale.get(arete.getSource().getNom())  + arete.getPoids());
+					predecesseur.put(arete.getDestination().getNom(), arete.getSource());
+					changement = true;
+				}
+				
+			}
+		}
+		
+		Sommet arrive = this.getSommetsTrier().stream().filter(s -> s.getNom() == villeDArrive).findFirst().get();
+		
+		try {
+			Sommet prede = predecesseur.get(arrive.getNom());
+			String chemin = prede.getNom() + " -> " + arrive.getNom()  ;
+			
+			while (prede != depart) {
+				prede = predecesseur.get(prede.getNom());
+				chemin =  prede.getNom() + " -> " + chemin;
+				
+			}
+			System.out.println(chemin);
+			
+			Resultat resultat = new Resultat();
+			resultat.setChemin(chemin);
+			resultat.setPoids(distanceMinimale.get(arrive.getNom()));
+			return resultat;
+		}
+		
+		catch (NullPointerException e) { // Si aucun chemin n'a pu être trouver entre le sommet de départ et le sommet d'arrivé
+			Resultat resultat = null;
+			return resultat;
+		}
 		
 		
 	}
@@ -403,10 +461,10 @@ public class Graphe {
 	}
 	
 	/**
-	 * Contruit et renvoie le graphe de départ
+	 * Contruit et renvoie une version du graphe de départ orienté et avec des poids négatifs
 	 * @return le graphe de départ
 	 */
-	public static Graphe getDefaultGrapheOrienter() {
+	public static Graphe getDefaultGrapheOrienterNegatif() {
 		
 		ArrayList<Sommet> sommets = new ArrayList<Sommet>();
 		Sommet bordeaux = new Sommet("Bordeaux", null, sommets);
@@ -426,26 +484,26 @@ public class Graphe {
 		new Arete(bordeaux, rennes, true, 130);
 		new Arete(bordeaux, nantes, true, 90);
 		new Arete(bordeaux, lyon, true, 100);
-		new Arete(bordeaux, paris, true, 150);
+		new Arete(bordeaux, paris, true, -150);
 		
 		new Arete(rennes, nantes, true, 45);
-		new Arete(rennes, caen, true, 75);
+		new Arete(rennes, caen, true, -75);
 		new Arete(rennes, paris, true, 110);
 		
-		new Arete(nantes, paris, true, 80);
+		new Arete(nantes, paris, true, -80);
 		new Arete(caen, lille, true, 65);
 		new Arete(caen, paris, true, 50);
 		
 		new Arete(paris, lille, true, 70);
-		new Arete(paris, dijon, true, 60);
+		new Arete(paris, dijon, true, -60);
 		new Arete(dijon, lille, true, 120);
 		
 		new Arete(dijon, nancy, true, 75);
-		new Arete(dijon, grenoble, true, 75);
+		new Arete(dijon, grenoble, true, -75);
 		new Arete(dijon, lyon, true, 70);
 		
 		new Arete(lyon, nancy, true, 90);
-		new Arete(lyon, grenoble, true, 40);
+		new Arete(lyon, grenoble, true, -40);
 		new Arete(grenoble, nancy, true, 80);
 		new Arete(lille, nancy, true, 100);
 		
