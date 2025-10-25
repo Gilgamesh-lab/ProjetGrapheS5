@@ -322,13 +322,12 @@ public class Graphe {
 		boolean changement = true;
 		while(changement) {
 			changement = false;
-			for (Arete arete : this.getAretes()) {
+			for (Arete arete : this.getAretesSansDoublons()) {
 				if(  distanceMinimale.get(arete.getDestination().getNom()) > distanceMinimale.get(arete.getSource().getNom())  + arete.getPoids()) {
 					distanceMinimale.put(arete.getDestination().getNom(), distanceMinimale.get(arete.getSource().getNom())  + arete.getPoids());
 					predecesseur.put(arete.getDestination().getNom(), arete.getSource());
 					changement = true;
 				}
-				
 			}
 		}
 		
@@ -357,6 +356,109 @@ public class Graphe {
 		}
 		
 		
+	}
+	
+	public Resultat getFloydWarshall() {
+		HashMap<String, HashMap<String, Integer>> w = new HashMap<String, HashMap<String, Integer>>();
+		int valeurMax = Integer.MAX_VALUE / 10;
+		Arete arete;
+		
+		for (Sommet key : this.getSommetsTrier() ){
+			w.put(key.getNom(), new HashMap<String, Integer>());
+			for (Sommet key2 : this.getSommetsTrier() ){
+				if (key == key2) { // si le sommet de départ est le sommet d'arrivée
+					w.get(key.getNom()).put(key2.getNom(), 0);
+				}
+				else{
+					arete = key.getAretes().stream().filter(arete2 -> arete2.getDestination() == key2).findFirst().orElse(null);
+					if(arete == null) { // si pas de chemin
+						w.get(key.getNom()).put(key2.getNom(), valeurMax);
+					}
+					else {
+						w.get(key.getNom()).put(key2.getNom(), arete.getPoids());
+					}
+				
+				}
+			}
+		}
+		
+		HashMap<String, HashMap<String, Sommet>> p = new HashMap<String, HashMap<String, Sommet>>();
+		
+		for (Sommet key : this.getSommetsTrier() ){
+			System.out.print(key.getNom() + " : ");
+			p.put(key.getNom(), new HashMap<String, Sommet>());
+			for (Sommet key2 : this.getSommetsTrier() ){
+				if (key != key2) { // si le sommet de départ est le sommet d'arrivée
+					arete = key.getAretes().stream().filter(arete2 -> arete2.getDestination() == key2).findFirst().orElse(null);
+					if(arete == null) { // si pas de chemin
+						p.get(key.getNom()).put(key2.getNom(), null);
+					}
+					else {
+						p.get(key.getNom()).put(key2.getNom(), key);
+					}
+				
+				}
+				
+			}
+		}
+		
+		String k,i,j;
+		
+		for (Sommet key1 : this.getSommetsTrier() ){
+			k = key1.getNom();
+			for (Sommet key2 : this.getSommetsTrier() ){
+				i = key2.getNom();
+				for (Sommet key3 : this.getSommetsTrier() ){
+					j = key3.getNom();
+					if(w.get(i).get(k) + w.get(k).get(j) < w.get(i).get(j)) {
+						w.get(i).put(j, w.get(i).get(k) + w.get(k).get(j));
+						p.get(i).put(j, p.get(k).get(j));
+					}
+				}
+			}
+		}
+		
+		Resultat resultat = new Resultat();
+		resultat.setMatriceDistance(w);
+		resultat.setMatricePere(p);
+		
+		return resultat;
+		
+		
+		
+	}
+	
+	public String cheminFloydWarshall(HashMap<String, HashMap<String, Sommet>> matricePere, String depart, String arrive) {
+		ArrayList<String> listeSommet = new ArrayList<String>();
+		
+		listeSommet = trouverCheminFloydWarshall( matricePere, depart,  arrive, listeSommet);
+		if(listeSommet == null) {
+			return null;
+		}
+		
+		else {
+			String chemin = listeSommet.get(listeSommet.size() -1);
+			
+			for (int i = listeSommet.size() -2 ; i >= 0 ; i--) {
+				chemin += "->" + listeSommet.get(i) ;
+			}
+			
+			return chemin;
+		}
+		
+		
+		
+	}
+	
+	public ArrayList<String> trouverCheminFloydWarshall(HashMap<String, HashMap<String, Sommet>> matricePere, String depart, String arrive, ArrayList<String> chemin) {
+		chemin.add(arrive);
+		if(matricePere.get(depart).get(arrive) == null) {
+			return null;
+		}
+		else {
+			trouverCheminFloydWarshall(matricePere, depart, matricePere.get(depart).get(arrive).getNom(), chemin);
+			return chemin;
+		}
 	}
 	
 	
