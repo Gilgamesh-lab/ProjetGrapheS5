@@ -66,11 +66,18 @@ public class Main  {
 		//Graphe graphe = new Graphe(sommets);
 		
 		System.out.println();
+		System.out.println("Algorithme de Dijkstra entre Bordeaux et Lille");
+		System.out.println();
+		
+		System.out.println();
 		Resultat resultat = graphe.getDijkstra("Bordeaux", "Lille");
 		
 		System.out.println("Le chemin le plus court trouvé entre Bordeaux et Lille avec l’algorithme de Dijkstra est : " + resultat.getChemin() + " avec un poids minimun de " + resultat.getPoids() );
 		
 		System.out.println();
+		System.out.println("Algorithme de Bellman-Ford entre Bordeaux et Lille");
+		System.out.println();
+		
 		graphe = Graphe.getDefaultGrapheOrienterNegatif();
 		resultat = graphe.getBellmanFord("Bordeaux", "Lille");
 		
@@ -78,15 +85,9 @@ public class Main  {
 
 		
 		System.out.println();
-		resultat = graphe.getBellmanFord("Lille", "Bordeaux");
-		if(resultat == null) {
-			System.out.println("Aucun chemin n'a pu être trouvé entre Lille et Bordeaux");
-		}
-		else {
-			System.out.println("Sur un graphe orienté avec des poids négatifs, le chemin le plus court trouvé entre Bordeaux et Lille avec l’algorithme de Bellman-Ford est : " + resultat.getChemin() + " avec un poids minimun de " + resultat.getPoids() );
-		}
-		
+		System.out.println("Algorithme de Floyd-Warshall");
 		System.out.println();
+		
 		graphe.getFloydWarshall();
 		
 		
@@ -106,7 +107,7 @@ public class Main  {
 		for (String key : w.keySet() ){
 			System.out.print(key + " : ");
 			for (String key2 : w.get(key).keySet() ){
-				if(w.get(key).get(key2) >= Integer.MAX_VALUE / 11) {
+				if(w.get(key).get(key2) >= Integer.MAX_VALUE / 10001) {
 					System.out.print("∞(" + key2 + ") , ");
 				}
 				else {

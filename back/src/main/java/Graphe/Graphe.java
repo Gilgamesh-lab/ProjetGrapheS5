@@ -27,30 +27,49 @@ public class Graphe {
 		return (ArrayList<Sommet>) this.sommets.stream().sorted(Comparator.comparing(sommet -> sommet.getNom())).collect(Collectors.toList());
 	}
 
+	/**
+	 * Permmet de définir la liste des sommets du graphe
+	 * @param sommets
+	 */
 	public void setSommets(ArrayList<Sommet> sommets) {
 		this.sommets = sommets;
 	}
 	
+	/**
+	 * Remet à false la valeur qui définit si un sommet a été marqué ou pas
+	 */
 	public void reset() {
 		this.getSommetsTrier().forEach(sommet -> sommet.setMarquer(false));
 	}
 	
+	/**
+	 * Permmets d'ajouter un sommet au graphe
+	 * @param sommet : le sommet à ajouter
+	 */
 	public void ajouterSommet(Sommet sommet) {
 		this.sommets.add(sommet);
 	}
 	
+	/**
+	 * Permmets d'ajouter un nouveau sommet au graphe
+	 * @param nomSommet : le nom du sommet à créer et à ajouter au graphe
+	 */
 	public void ajouterSommet(String nomSommet) {
 		this.sommets.add(new Sommet(nomSommet));
 	}
 	
+	/**
+	 * Permet de retrouver un sommet grâce à son nom
+	 * @param nom : le nom du sommet à rechercher
+	 * @return le sommet trouvé
+	 */
 	public Sommet getSommetParNom(String nom) {
 		return this.getSommetsTrier().stream().filter(sommet -> sommet.getNom() == nom).findFirst().get();
 	}
 	
-	public boolean containSommetParNom(String nom) {
-		return this.getSommetsTrier().stream().anyMatch(sommet -> sommet.getNom() == nom);
-	}
-	
+	/**
+	 * Affiche les arêtes du graphe
+	 */
 	public void afficher() {
 		ArrayList<Integer> dejaVue = new ArrayList<Integer>();
 		
@@ -114,15 +133,19 @@ public class Graphe {
 				}
 			}
 		}
+		
 		resultat.setChemin(chemin);
 		resultat.setGraphe(grapheBFS);
-		this.getSommetsTrier().forEach(sommet -> sommet.setMarquer(false)); // reset
+		
 		return resultat;
 	}
 	
 	
 	
-	
+	/**
+	 * Applique l'algorithme de Kruskal sur le graphe
+	 * @return une liste d'arêtes représentant un arbre couvrant de poids minimal 
+	 */
 	public ArrayList<Arete> getKruskal() {
 		ArrayList<Arete> aretesTrierParPoids = this.getAretesSansDoublons();
 		aretesTrierParPoids.sort(Comparator.comparingInt(arete -> arete.getPoids()));
@@ -131,7 +154,6 @@ public class Graphe {
 		ArrayList<Arete> aretes = new ArrayList<Arete>();
 		
 		while (aretes.size() != (this.getSommetsTrier().size() - 1)) {
-			//System.out.println(sommetVisiter);
 			Arete arete = null;
 			try {
 				arete = aretesTrierParPoids.stream().filter(arete2 -> !sommetVisiter.contains(arete2.getSource()) || !sommetVisiter.contains(arete2.getDestination()) ).findFirst().get();
@@ -144,10 +166,7 @@ public class Graphe {
 						break;
 					}
 				}
-				
-				
 			}
-			
 			
 			if(!sommetVisiter.contains(arete.getSource())) {
 				sommetVisiter.add(arete.getSource());
@@ -164,12 +183,15 @@ public class Graphe {
 		
 	}
 	
+	/**
+	 * Applique l'algorithme de Prim sur le graphe
+	 * @return une liste d'arêtes représentant un arbre couvrant de poids minimal 
+	 */
 	public ArrayList<Arete> getPrim(String nomPointDepart) {
 		Sommet depart = this.getSommetsTrier().stream().filter(sommet -> sommet.getNom() == nomPointDepart).findFirst().get();
 		ArrayList<Arete> listeAretes = new ArrayList<Arete>();
 		ArrayList<Arete> aretesChoisi = new ArrayList<Arete>();
 		ArrayList<Sommet> sommetVisiter = new ArrayList<Sommet>();
-		
 		
 		depart.getAretes().stream().forEach(arete -> listeAretes.add(arete));
 		sommetVisiter.add(depart);
@@ -223,6 +245,12 @@ public class Graphe {
 		
 	}
 	
+	/**
+	 * Applique l'algorithme de Dijkstra sur le graphe
+	 * @param villeDeDepart : le nom de la ville de départ
+	 * @param villeDArrive : le nom de la ville d'arrivé
+	 * @return un objet Resultat contenant le chemin le plus court entre le point de départ et le point d'arrive ainsi que son poids
+	 */
 	public Resultat getDijkstra(String villeDeDepart, String villeDArrive) {
 		this.reset();
 		Sommet depart = this.getSommetsTrier().stream().filter(sommet -> sommet.getNom() == villeDeDepart).findFirst().get();
@@ -230,68 +258,47 @@ public class Graphe {
 		HashMap<String, Integer> distanceMinimale = new HashMap<String, Integer>();
 		HashMap<String, Sommet> predecesseur = new HashMap<String, Sommet>();
 		
-		int valeurMax = Integer.MAX_VALUE / 2;
+		int infinie = Integer.MAX_VALUE / 10000; // représente la valeur infinie
 		
 		for (Sommet s : this.getSommetsTrier() ) {
 			if(s == depart){
 				distanceMinimale.put(s.getNom(), 0);
 			}
 			else {
-				distanceMinimale.put(s.getNom(), valeurMax);
+				distanceMinimale.put(s.getNom(), infinie);
 				predecesseur.put(s.getNom(), null);
 			}
-			
 		}
-		
-		int poidsS;
 		
 		while(this.getSommetsTrier().stream().anyMatch(s -> !s.isMarquer())) {
 			sommet = this.getSommetsTrier().stream().filter(s -> !s.isMarquer()).min(Comparator.comparingInt(s -> distanceMinimale.get(s.getNom()) )).get();
 			sommet.setMarquer(true);
 			
-			if(distanceMinimale.get(sommet.getNom()) == valeurMax) {
-				poidsS = 0;
-			} 
-			else {
-				poidsS  = distanceMinimale.get(sommet.getNom());
-			}
-			
-			
-			
 			for (Arete arete : sommet.getAretes()) {
-				
-				
 				if(arete.getDestination() != sommet )  {
-					if(  distanceMinimale.get(arete.getDestination().getNom()) > poidsS  + arete.getPoids()) {
-						distanceMinimale.put(arete.getDestination().getNom(), poidsS  + arete.getPoids());
+					if(  distanceMinimale.get(arete.getDestination().getNom()) > distanceMinimale.get(sommet.getNom())  + arete.getPoids()) {
+						distanceMinimale.put(arete.getDestination().getNom(), distanceMinimale.get(sommet.getNom())  + arete.getPoids());
 						predecesseur.put(arete.getDestination().getNom(), sommet);
 					}
 				}
-				
 				else {
-					if( distanceMinimale.get(arete.getSource().getNom()) > poidsS  + arete.getPoids()) {
-						distanceMinimale.put(arete.getSource().getNom(), poidsS  + arete.getPoids());
+					if( distanceMinimale.get(arete.getSource().getNom()) > distanceMinimale.get(sommet.getNom())  + arete.getPoids()) {
+						distanceMinimale.put(arete.getSource().getNom(), distanceMinimale.get(sommet.getNom())  + arete.getPoids());
 						predecesseur.put(arete.getSource().getNom(), sommet);
 					}
 				}
 			}
-		
-		
-		
 		}
 		
 		Sommet arrive = this.getSommetsTrier().stream().filter(s -> s.getNom() == villeDArrive).findFirst().get();
-		
 		Sommet prede = predecesseur.get(arrive.getNom());
 		String chemin = prede.getNom() + " -> " + arrive.getNom()  ;
 		
 		while (prede != depart) {
 			prede = predecesseur.get(prede.getNom());
 			chemin =  prede.getNom() + " -> " + chemin;
-			
 		}
 		
-		System.out.println(chemin);
 		
 		Resultat resultat = new Resultat();
 		resultat.setChemin(chemin);
@@ -301,19 +308,25 @@ public class Graphe {
 		
 	}
 	
+	/**
+	 * Applique l'algorithme de Bellman-Ford sur le graphe
+	 * @param villeDeDepart : le nom de la ville de départ
+	 * @param villeDArrive : le nom de la ville d'arrivé
+	 * @return un objet Resultat contenant le chemin le plus court entre le point de départ et le point d'arrive ainsi que son poids, renvoie null si pas de chemin trouvé 
+	 */
 	public Resultat getBellmanFord(String villeDeDepart, String villeDArrive) {
 		Sommet depart = this.getSommetsTrier().stream().filter(sommet -> sommet.getNom() == villeDeDepart).findFirst().get();
 		HashMap<String, Integer> distanceMinimale = new HashMap<String, Integer>();
 		HashMap<String, Sommet> predecesseur = new HashMap<String, Sommet>();
 		
-		int valeurMax = Integer.MAX_VALUE / 2;
+		int infinie = Integer.MAX_VALUE / 10000; // représente la valeur infinie
 		
 		for (Sommet s : this.getSommetsTrier() ) {
 			if(s == depart){
 				distanceMinimale.put(s.getNom(), 0);
 			}
 			else {
-				distanceMinimale.put(s.getNom(), valeurMax);
+				distanceMinimale.put(s.getNom(), infinie);
 				predecesseur.put(s.getNom(), null);
 			}
 			
@@ -332,7 +345,6 @@ public class Graphe {
 		}
 		
 		Sommet arrive = this.getSommetsTrier().stream().filter(s -> s.getNom() == villeDArrive).findFirst().get();
-		
 		try {
 			Sommet prede = predecesseur.get(arrive.getNom());
 			String chemin = prede.getNom() + " -> " + arrive.getNom()  ;
@@ -340,27 +352,25 @@ public class Graphe {
 			while (prede != depart) {
 				prede = predecesseur.get(prede.getNom());
 				chemin =  prede.getNom() + " -> " + chemin;
-				
 			}
-			System.out.println(chemin);
-			
 			Resultat resultat = new Resultat();
 			resultat.setChemin(chemin);
 			resultat.setPoids(distanceMinimale.get(arrive.getNom()));
 			return resultat;
 		}
-		
 		catch (NullPointerException e) { // Si aucun chemin n'a pu être trouver entre le sommet de départ et le sommet d'arrivé
 			Resultat resultat = null;
 			return resultat;
 		}
-		
-		
 	}
 	
+	/**
+	 * Applique l'algorithme de Floyd-Warshall sur le graphe
+	 * @return un objet Resultat contenant la  matrice des distance et la matrice des pères correspondant à ce graphe
+	 */
 	public Resultat getFloydWarshall() {
 		HashMap<String, HashMap<String, Integer>> w = new HashMap<String, HashMap<String, Integer>>();
-		int valeurMax = Integer.MAX_VALUE / 10;
+		int infinie = Integer.MAX_VALUE / 10000; // représente la valeur infinie si point d'arrivé hors de portée
 		Arete arete;
 		
 		for (Sommet key : this.getSommetsTrier() ){
@@ -372,7 +382,7 @@ public class Graphe {
 				else{
 					arete = key.getAretes().stream().filter(arete2 -> arete2.getDestination() == key2).findFirst().orElse(null);
 					if(arete == null) { // si pas de chemin
-						w.get(key.getNom()).put(key2.getNom(), valeurMax);
+						w.get(key.getNom()).put(key2.getNom(), infinie); 
 					}
 					else {
 						w.get(key.getNom()).put(key2.getNom(), arete.getPoids());
@@ -383,9 +393,7 @@ public class Graphe {
 		}
 		
 		HashMap<String, HashMap<String, Sommet>> p = new HashMap<String, HashMap<String, Sommet>>();
-		
 		for (Sommet key : this.getSommetsTrier() ){
-			System.out.print(key.getNom() + " : ");
 			p.put(key.getNom(), new HashMap<String, Sommet>());
 			for (Sommet key2 : this.getSommetsTrier() ){
 				if (key != key2) { // si le sommet de départ est le sommet d'arrivée
@@ -396,14 +404,11 @@ public class Graphe {
 					else {
 						p.get(key.getNom()).put(key2.getNom(), key);
 					}
-				
 				}
-				
 			}
 		}
 		
 		String k,i,j;
-		
 		for (Sommet key1 : this.getSommetsTrier() ){
 			k = key1.getNom();
 			for (Sommet key2 : this.getSommetsTrier() ){
@@ -428,6 +433,13 @@ public class Graphe {
 		
 	}
 	
+	/**
+	 * Reconstruit le chemin le plus court entre deux points
+	 * @param matricePere : la matrice pere de ce graphe issue de l'algorithme de Floyd-Warshall
+	 * @param depart : le point de départ
+	 * @param arrive : le point d'arrive
+	 * @return le chemin le plus court entre le point de départ et le point d'arrive au format : sommet1 -> sommet2
+	 */
 	public String cheminFloydWarshall(HashMap<String, HashMap<String, Sommet>> matricePere, String depart, String arrive) {
 		ArrayList<String> listeSommet = new ArrayList<String>();
 		
@@ -438,18 +450,21 @@ public class Graphe {
 		
 		else {
 			String chemin = listeSommet.get(listeSommet.size() -1);
-			
 			for (int i = listeSommet.size() -2 ; i >= 0 ; i--) {
 				chemin += "->" + listeSommet.get(i) ;
 			}
-			
 			return chemin;
 		}
-		
-		
-		
 	}
 	
+	/**
+	 * Trouve le chemin le plus court entre deux points
+	 * @param matricePere : la matrice pere de ce graphe issue de l'algorithme de Floyd-Warshall
+	 * @param depart : le point de départ
+	 * @param arrive : le point d'arrive
+	 * @param chemin : liste des sommets parcourue en emprutant le chemin le plus court
+	 * @return une liste de sommet correspondant au chemin le plus court entre le point de départ et le point d'arrive
+	 */
 	public ArrayList<String> trouverCheminFloydWarshall(HashMap<String, HashMap<String, Sommet>> matricePere, String depart, String arrive, ArrayList<String> chemin) {
 		chemin.add(arrive);
 		if(matricePere.get(depart).get(arrive) == null) {
@@ -483,6 +498,11 @@ public class Graphe {
 		return chemin;
 	}
 	
+	/**
+	 * Renvoie une liste de string correspondant à tout les sommets appartenant à l'arbre de la première aretes
+	 * @param aretes une liste d'arete
+	 * @return une liste de nom de sommet
+	 */
 	public ArrayList<String> getEnsemble (ArrayList<Arete> aretes){
 		ArrayList<String> aretesChoisi = new ArrayList<String>();
 		aretesChoisi.add(aretes.get(0).getSource().getNom());
@@ -490,14 +510,11 @@ public class Graphe {
 		boolean nouveauSommetDetecter = true;
 		while(nouveauSommetDetecter) {
 			nouveauSommetDetecter = false;
-			
 			for (Arete arete : aretes) {
-				
 				if(!aretesChoisi.contains(arete.getSource().getNom()) &&  aretesChoisi.contains(arete.getDestination().getNom())) {
 					aretesChoisi.add(arete.getSource().getNom());
 					nouveauSommetDetecter = true;
 				}
-				
 				else if(aretesChoisi.contains(arete.getSource().getNom()) &&  !aretesChoisi.contains(arete.getDestination().getNom())) {
 					aretesChoisi.add(arete.getDestination().getNom());
 					nouveauSommetDetecter = true;
@@ -564,7 +581,7 @@ public class Graphe {
 	
 	/**
 	 * Contruit et renvoie une version du graphe de départ orienté et avec des poids négatifs
-	 * @return le graphe de départ
+	 * @return le graphe de départ orienté et avec des poids négatifs
 	 */
 	public static Graphe getDefaultGrapheOrienterNegatif() {
 		
