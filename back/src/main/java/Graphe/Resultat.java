@@ -2,7 +2,7 @@ package Graphe;
 
 import java.util.HashMap;
 
-public class Resultat {
+public class Resultat { // classe pour stocker les différents résultats des algorithmes sous un même type
 	private Graphe graphe;
 	private String chemin;
 	private int poids;
@@ -19,11 +19,6 @@ public class Resultat {
 		
 	}
 	
-	
-	
-	
-
-
 	public HashMap<String, HashMap<String, Integer>> getMatriceDistance() {
 		return matriceDistance;
 	}
