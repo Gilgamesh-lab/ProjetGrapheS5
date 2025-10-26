@@ -26,7 +26,7 @@ public class Main extends Application {
 
         // Menu déroulant et boutons
         ComboBox<String> algoMenu = new ComboBox<>();
-        algoMenu.getItems().addAll("BFS", "DFS");
+        algoMenu.getItems().addAll("BFS", "DFS", "Kruskal", "Prim", "Dijkstra", "Bellman-Ford", "Floyd-Warshall");
         algoMenu.setValue("BFS");
         algoMenu.setDisable(true); // désactivé au départ
 
@@ -42,17 +42,37 @@ public class Main extends Application {
 
             switch(algo) {
                 case "BFS":
-                    Resultat bfs = graphe.getBFS("Paris");
-                    System.out.println("BFS arêtes : " + bfs.getGraphe().getAretes().size());
+                    Resultat bfs = graphe.getBFS("Rennes");
                     grapheView.runAlgorithmStepByStep(bfs.getGraphe());
                     break;
+
                 case "DFS":
-                    Resultat dfs = graphe.getDFS("Paris");
-                    System.out.println("DFS arêtes : " + dfs.getGraphe().getAretes().size());
+                    Resultat dfs = graphe.getDFS("Rennes");
                     grapheView.runAlgorithmStepByStep(dfs.getGraphe());
+                    break;
+
+                case "Kruskal":
+                    grapheView.runAlgorithmStepByStep(graphe.getKruskal());
+                    break;
+
+                case "Prim":
+                    grapheView.runAlgorithmStepByStep(graphe.getPrim("Rennes"));
+                    break;
+
+                case "Dijkstra":
+                    Resultat dij = graphe.getDijkstra("Bordeaux", "Lille");
+                    grapheView.runAlgorithmStepByStep(dij.getGraphe());
+                    break;
+
+                case "Bellman-Ford":
+                    Graphe g2 = Graphe.getDefaultGrapheOrienterNegatif();
+                    Resultat bf = g2.getBellmanFord("Bordeaux", "Lille");
+                    grapheView.runAlgorithmStepByStep(bf.getGraphe());
                     break;
             }
         });
+
+
 
         resetButton.setOnAction(e -> {
             grapheView.resetGraph();

@@ -235,10 +235,16 @@ public class GrapheView {
             line.setStrokeWidth(1);
         }
     }
-
     public void runAlgorithmStepByStep(Graphe pathGraphe) {
+        System.out.println("DEBUG: Arêtes du graphe à animer = " + pathGraphe.getAretes().size());
+        runAlgorithmStepByStep(pathGraphe.getAretes());
+    }
+
+
+
+    public void runAlgorithmStepByStep(List<Arete> edgesToAnimate) {
         resetGraph();
-        pathQueue = new LinkedList<>(pathGraphe.getAretes());
+        pathQueue = new LinkedList<>(edgesToAnimate);
 
         pathTimer = new AnimationTimer() {
             private long lastUpdate = 0;
@@ -259,12 +265,13 @@ public class GrapheView {
                             orig.getDestination().getNom().equals(a.getDestination().getNom())) ||
                             (orig.getSource().getNom().equals(a.getDestination().getNom()) &&
                                     orig.getDestination().getNom().equals(a.getSource().getNom()))) {
+
+
                         Line line = edges.get(i);
                         line.setStroke(Color.RED);
                         line.setStrokeWidth(3);
                         break;
                     }
-
                 }
             }
         };
