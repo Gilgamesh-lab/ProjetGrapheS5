@@ -117,8 +117,8 @@ public class GrapheView {
         timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                updatePhysics();
-                updateUI();
+                updatePhysics();   // fait bouger les nœuds
+                updateNodeUI();    // mise à jour des positions des cercles et labels des sommets
 
                 double totalV = 0;
                 for (Node n : nodes.values()) {
@@ -129,9 +129,10 @@ public class GrapheView {
                 if (avgV < STABLE_THRESHOLD) stableFrames++;
                 else stableFrames = 0;
 
+                // Dès que le graphe est stable
                 if (stableFrames > STABLE_FRAME_COUNT) {
                     timer.stop();
-                    for (Text t : edgeLabels) t.setVisible(true);
+                    positionEdgeLabels(); // positionne et fait apparaître les poids des arêtes
 
                     if (onStableCallback != null) {
                         onStableCallback.run();
@@ -192,7 +193,8 @@ public class GrapheView {
         }
     }
 
-    private void updateUI() {
+    // Mise à jour des nœuds uniquement (cercles + labels)
+    private void updateNodeUI() {
         for (Node n : nodes.values()) {
             n.circle.setCenterX(n.x);
             n.circle.setCenterY(n.y);
@@ -202,6 +204,7 @@ public class GrapheView {
             n.label.setY(n.y + textHeight / 4);
         }
 
+        // Les arêtes elles, sont mises à jour même pendant le placement
         for (int i = 0; i < graphe.getAretes().size(); i++) {
             Arete a = graphe.getAretes().get(i);
             Node src = nodes.get(a.getSource().getNom());
@@ -211,19 +214,36 @@ public class GrapheView {
             line.setStartY(src.y);
             line.setEndX(dst.x);
             line.setEndY(dst.y);
+        }
+    }
 
+    // Positionne et aligne les labels des arêtes après stabilisation
+    private void positionEdgeLabels() {
+        for (int i = 0; i < graphe.getAretes().size(); i++) {
+            Arete a = graphe.getAretes().get(i);
+            Node src = nodes.get(a.getSource().getNom());
+            Node dst = nodes.get(a.getDestination().getNom());
             Text text = edgeLabels.get(i);
+
             double mx = (src.x + dst.x) / 2;
             double my = (src.y + dst.y) / 2;
             double dx = dst.x - src.x;
             double dy = dst.y - src.y;
             double dist = Math.sqrt(dx*dx + dy*dy);
+
+            // angle pour que le texte suive l'arête
+            double angle = Math.toDegrees(Math.atan2(dy, dx));
+            if (angle > 90 || angle < -90) angle += 180; // texte toujours lisible
+            text.setRotate(angle);
+
+            // décalage perpendiculaire pour éviter chevauchement
             double nx = -dy / dist;
             double ny = dx / dist;
-            double offset = 19;
-
+            double offset = 15;
             text.setX(mx + nx * offset);
             text.setY(my + ny * offset);
+
+            text.setVisible(true);
         }
     }
 
