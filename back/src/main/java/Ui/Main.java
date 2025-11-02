@@ -11,6 +11,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import java.util.List;
+import java.util.ArrayList;
+
 
 public class Main extends Application {
 
@@ -60,14 +63,24 @@ public class Main extends Application {
                     break;
 
                 case "Dijkstra":
-                    Resultat dij = graphe.getDijkstra("Bordeaux", "Lille");
-                    grapheView.runAlgorithmStepByStep(dij.getGraphe());
+                    Resultat resDij = graphe.getDijkstra("Bordeaux", "Lille");
+                    List<Arete> edgesDij = buildEdgesFromPath(graphe, resDij.getChemin());
+                    grapheView.runAlgorithmStepByStep(edgesDij);
                     break;
 
                 case "Bellman-Ford":
-                    Graphe g2 = Graphe.getDefaultGrapheOrienterNegatif();
-                    Resultat bf = g2.getBellmanFord("Bordeaux", "Lille");
-                    grapheView.runAlgorithmStepByStep(bf.getGraphe());
+                    Graphe gNeg = Graphe.getDefaultGrapheOrienterNegatif();
+                    Resultat resBell = gNeg.getBellmanFord("Bordeaux", "Lille");
+                    if(resBell != null) {
+                        List<Arete> edgesBell = buildEdgesFromPath(gNeg, resBell.getChemin());
+                        grapheView.runAlgorithmStepByStep(edgesBell);
+                    }
+                    break;
+
+
+
+                case "Floyd-Warshall":
+                    graphe.getFloydWarshall();
                     break;
             }
         });
@@ -97,6 +110,29 @@ public class Main extends Application {
 
         grapheView.startSimulation();
     }
+    private List<Arete> buildEdgesFromPath(Graphe graphe, String cheminStr) {
+        List<Arete> edges = new ArrayList<>();
+        if (cheminStr == null || cheminStr.isEmpty()) return edges;
+
+        // Le chemin est sous forme "A -> B -> C -> D"
+        String[] noms = cheminStr.split(" -> ");
+        for (int i = 0; i < noms.length - 1; i++) {
+            String nom1 = noms[i];
+            String nom2 = noms[i + 1];
+
+            for (Arete a : graphe.getAretes()) {
+                if ((a.getSource().getNom().equals(nom1) && a.getDestination().getNom().equals(nom2)) ||
+                        (a.getSource().getNom().equals(nom2) && a.getDestination().getNom().equals(nom1))) {
+                    edges.add(a);
+                    break;
+                }
+            }
+        }
+        return edges;
+    }
+
+
+
 
     public static void main(String[] args) {
         launch(args);

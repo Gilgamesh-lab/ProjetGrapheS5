@@ -236,13 +236,20 @@ public class GrapheView {
         }
     }
     public void runAlgorithmStepByStep(Graphe pathGraphe) {
+        if (pathGraphe == null || pathGraphe.getAretes() == null) {
+            System.out.println("Aucune arête à animer !");
+            return;
+        }
         System.out.println("DEBUG: Arêtes du graphe à animer = " + pathGraphe.getAretes().size());
         runAlgorithmStepByStep(pathGraphe.getAretes());
     }
 
-
-
     public void runAlgorithmStepByStep(List<Arete> edgesToAnimate) {
+        if (edgesToAnimate == null || edgesToAnimate.isEmpty()) {
+            System.out.println("Aucune arête à animer !");
+            return;
+        }
+
         resetGraph();
         pathQueue = new LinkedList<>(edgesToAnimate);
 
@@ -266,7 +273,6 @@ public class GrapheView {
                             (orig.getSource().getNom().equals(a.getDestination().getNom()) &&
                                     orig.getDestination().getNom().equals(a.getSource().getNom()))) {
 
-
                         Line line = edges.get(i);
                         line.setStroke(Color.RED);
                         line.setStrokeWidth(3);
@@ -276,7 +282,9 @@ public class GrapheView {
             }
         };
 
+        System.out.println("DEBUG: Animation lancée pour " + edgesToAnimate.size() + " arêtes");
         pathTimer.start();
     }
+
 
 }
