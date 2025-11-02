@@ -13,6 +13,9 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+
 
 
 public class Main extends Application {
@@ -80,8 +83,34 @@ public class Main extends Application {
 
 
                 case "Floyd-Warshall":
-                    graphe.getFloydWarshall();
+                    Resultat resFloyd = graphe.getFloydWarshall();
+
+                    String cheminStr = graphe.cheminFloydWarshall(resFloyd.getMatricePere(), "Rennes", "Dijon");
+                    if (cheminStr == null) {
+                        System.out.println("Aucun chemin trouvé avec Floyd-Warshall.");
+                        break;
+                    }
+
+                    // On sépare correctement et on inverse
+                    String[] noms = cheminStr.split("->");
+                    List<String> nomsList = new ArrayList<>(Arrays.asList(noms));
+                    Collections.reverse(nomsList);
+
+                    // On reconstruit la chaîne avec les espaces autour de " -> " pour match buildEdgesFromPath
+                    String cheminCorrect = String.join(" -> ", nomsList);
+
+                    List<Arete> edgesFloyd = buildEdgesFromPath(graphe, cheminCorrect);
+                    if (edgesFloyd.isEmpty()) {
+                        System.out.println("Aucune arête à animer !");
+                    }
+                    grapheView.runAlgorithmStepByStep(edgesFloyd);
                     break;
+
+
+
+
+
+
             }
         });
 
