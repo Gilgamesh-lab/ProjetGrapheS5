@@ -19,26 +19,17 @@ public class Sommet {
     }
     
     public Sommet(String nom, String couleur) {
-    	this.nom = nom;
-    	this.couleur = couleur;
-    	this.aretes = new ArrayList<Arete>();
-    	this.marquer = false;
+    	this(nom, new ArrayList<Arete>(), couleur);
     }
     
     public Sommet(String nom) {
-    	this.nom = nom;
-    	this.couleur = null;
-    	this.aretes = new ArrayList<Arete>();
-    	this.marquer = false;
+    	this(nom, new ArrayList<Arete>(), null);
     }
     
     
     public Sommet(String nom, String couleur, ArrayList<Sommet> sommets) {
-    	this.nom = nom;
-    	this.couleur = couleur;
-    	this.aretes = new ArrayList<Arete>();
+    	this(nom, new ArrayList<Arete>(), couleur);
     	sommets.add(this);
-    	this.marquer = false;
     }
     
 
@@ -49,7 +40,14 @@ public class Sommet {
     public ArrayList<Sommet> getVoisins(){
     	ArrayList<Sommet> voisins = new ArrayList<Sommet>();
     	for (Arete arete : this.aretes) {
-    		if(arete.getDestination() != this) {
+    		
+    		if(arete.EstOrienter() ) {
+    			if(arete.getDestination() != this) {
+    				voisins.add(arete.getDestination());
+    			}
+    		}
+    		
+    		else if(arete.getDestination() != this) {
     			voisins.add(arete.getDestination());
     		}
     		else {
@@ -86,6 +84,14 @@ public class Sommet {
 	 */
 	public ArrayList<Arete> getAretes() {
 		return (ArrayList<Arete>) this.aretes.stream().sorted(Comparator.comparingInt(arete -> arete.getId())).collect(Collectors.toList());
+	}
+	
+	/**
+	 * Renvoie la liste des arêtes d'un sommet 
+	 * @return la liste des arêtes
+	 */
+	public ArrayList<Arete> getAretesSansDoublons(){
+		return (ArrayList<Arete>) this.getAretes().stream().distinct().collect(Collectors.toList());
 	}
 
 
@@ -133,7 +139,14 @@ public class Sommet {
 		Sommet other = (Sommet) obj;
 		return Objects.equals(nom, other.nom);
 	}
+
+	@Override
+	public String toString() {
+		return "Sommet [nom=" + nom ;
+	}
     
+	
+	
     
     
     
