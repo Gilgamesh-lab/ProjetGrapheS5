@@ -82,6 +82,7 @@ public class Arete {
 	public Integer getPoids() {
 		return poids;
 	}
+	
 
 	public void setPoids(Integer poids) {
 		this.poids = poids;
