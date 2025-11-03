@@ -15,10 +15,15 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import javafx.scene.control.Alert;
+
 
 
 
 public class Main extends Application {
+
+    private boolean bellmanUsed = false; // savoir si Bellman-Ford a été le dernier algo utilisé
+    private GrapheView grapheView;
 
     @Override
     public void start(Stage stage) {
@@ -28,7 +33,7 @@ public class Main extends Application {
         Scene scene = new Scene(root, 1200, 800);
 
         Graphe graphe = Graphe.getDefaultGraphe();
-        GrapheView grapheView = new GrapheView(graphe, graphRoot);
+        grapheView = new GrapheView(graphe, graphRoot);
 
         // Menu déroulant pour algorithmes
         ComboBox<String> algoMenu = new ComboBox<>();
@@ -88,39 +93,81 @@ public class Main extends Application {
 
             switch (algo) {
                 case "BFS":
+                    runAlgoWithGraphReset(graphRoot, graphe, () -> {
                     Resultat bfs = graphe.getBFS(depart);
                     grapheView.runAlgorithmStepByStep(bfs.getGraphe());
+                    });
                     break;
                 case "DFS":
+                    runAlgoWithGraphReset(graphRoot, graphe, () -> {
                     Resultat dfs = graphe.getDFS(depart);
                     grapheView.runAlgorithmStepByStep(dfs.getGraphe());
+                    });
                     break;
                 case "Kruskal":
+                    runAlgoWithGraphReset(graphRoot, graphe, () -> {
                     grapheView.runAlgorithmStepByStep(graphe.getKruskal());
+                    });
                     break;
                 case "Prim":
+                    runAlgoWithGraphReset(graphRoot, graphe, () -> {
                     grapheView.runAlgorithmStepByStep(graphe.getPrim(depart));
+                    });
                     break;
                 case "Dijkstra":
+                    runAlgoWithGraphReset(graphRoot, graphe, () -> {
                     Resultat resDij = graphe.getDijkstra(depart, arrivee);
                     List<Arete> edgesDij = buildEdgesFromPath(graphe, resDij.getChemin());
                     grapheView.runAlgorithmStepByStep(edgesDij);
+                    });
                     break;
                 case "Bellman-Ford":
-                    Graphe gNeg = Graphe.getDefaultGrapheOrienterNegatif();
-                    Resultat resBell = gNeg.getBellmanFord(depart, arrivee);
-                    if (resBell != null) {
-                        List<Arete> edgesBell = buildEdgesFromPath(gNeg, resBell.getChemin());
-                        grapheView.runAlgorithmStepByStep(edgesBell);
-                    }
+                    bellmanUsed = true ;
+
+                    // On crée le graphe avec arêtes négatives
+                    Graphe gNeg = Graphe.getDefaultGrapheNegatif();
+
+                    // ⚠️ On met à jour la vue avec ce nouveau graphe
+                    graphRoot.getChildren().clear();
+                    grapheView = new GrapheView(gNeg, graphRoot);
+
+                    // On relance la simulation pour positionner les sommets
+                    grapheView.setOnStable(() -> {
+                        Resultat resBell = gNeg.getBellmanFord(depart, arrivee);
+                        if (resBell != null) {
+                            List<Arete> edgesBell = buildEdgesFromPath(gNeg, resBell.getChemin());
+                            if (edgesBell.isEmpty()) {
+                                System.out.println("⚠️ Aucune arête trouvée pour le chemin Bellman-Ford !");
+                            } else {
+                                System.out.println("✅ Animation du chemin Bellman-Ford : " + resBell.getChemin());
+                                grapheView.runAlgorithmStepByStep(edgesBell);
+                            }
+                        } else {
+                            System.out.println("❌ Résultat Bellman-Ford nul pour " + depart + " → " + arrivee);
+
+                            // Affichage Alert dans le thread JavaFX, après l'animation
+                            Platform.runLater(() -> {
+                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                                alert.setTitle("Bellman-Ford");
+                                alert.setHeaderText("Aucun chemin trouvé");
+                                alert.setContentText("Aucun résultat pour " + depart + " → " + arrivee);
+                                alert.show();
+                            });                    }
+                    });
+
+                    grapheView.startSimulation();
                     break;
+
                 case "Floyd-Warshall":
-                    Resultat resFloyd = graphe.getFloydWarshall();
+                    runAlgoWithGraphReset(graphRoot, graphe, () -> {
+
+
+                        Resultat resFloyd = graphe.getFloydWarshall();
                     String cheminStr = graphe.cheminFloydWarshall(resFloyd.getMatricePere(), depart, arrivee);
                     System.out.println("DEBUG: cheminStr = " + cheminStr);
                     if (cheminStr == null) {
                         System.out.println("Aucun chemin trouvé avec Floyd-Warshall.");
-                        break;
+                        return ;
                     }
                     // On inverse correctement pour buildEdgesFromPath
                     String[] nomsChemin = cheminStr.split("->");
@@ -130,7 +177,12 @@ public class Main extends Application {
                     List<Arete> edgesFloyd = buildEdgesFromPath(graphe, cheminCorrect);
                     if (edgesFloyd.isEmpty()) System.out.println("Aucune arête à animer !");
                     grapheView.runAlgorithmStepByStep(edgesFloyd);
+                    });
+
                     break;
+
+
+
             }
         });
 
@@ -156,6 +208,22 @@ public class Main extends Application {
 
         grapheView.startSimulation();
     }
+    private void runAlgoWithGraphReset(Group graphRoot, Graphe graphe, Runnable algoAction) {
+        if (bellmanUsed) {
+            // On réinitialise la vue si Bellman-Ford était le dernier utilisé
+            graphRoot.getChildren().clear();
+            grapheView = new GrapheView(graphe, graphRoot);
+            bellmanUsed = false;
+            // On relance la simulation pour repositionner les sommets
+            grapheView.setOnStable(() -> algoAction.run());
+            grapheView.startSimulation();
+        } else {
+            // Sinon, juste exécuter l'action directement
+            algoAction.run();
+        }
+    }
+
+
 
 
     private List<Arete> buildEdgesFromPath(Graphe graphe, String cheminStr) {

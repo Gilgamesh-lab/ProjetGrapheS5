@@ -42,8 +42,8 @@ public class GrapheView {
     private static final double SCALE = 0.07;
 
     private int stableFrames = 0;
-    private static final double STABLE_THRESHOLD = 1.2; // vitesse moyenne minimale
-    private static final int STABLE_FRAME_COUNT = 10;   // nombre de frames calmes avant arrêt
+    private static final double STABLE_THRESHOLD = 3; // vitesse moyenne minimale
+    private static final int STABLE_FRAME_COUNT = 8;   // nombre de frames calmes avant arrêt
 
     public GrapheView(Graphe graphe, Group root) {
         this.graphe = graphe;
@@ -263,6 +263,7 @@ public class GrapheView {
         System.out.println("DEBUG: Arêtes du graphe à animer = " + pathGraphe.getAretes().size());
         runAlgorithmStepByStep(pathGraphe.getAretes());
     }
+
 
     public void runAlgorithmStepByStep(List<Arete> edgesToAnimate) {
         if (edgesToAnimate == null || edgesToAnimate.isEmpty()) {
