@@ -28,7 +28,8 @@ public class Resultat { // classe pour stocker les différents résultats des al
 	}
 
 	public HashMap<String, HashMap<String, Sommet>> getMatricePere() {
-		return matricePere;
+        System.out.println("DEBUG: matrice pere : " + matricePere);
+        return matricePere;
 	}
 
 	public void setMatricePere(HashMap<String, HashMap<String, Sommet>> matricePere) {

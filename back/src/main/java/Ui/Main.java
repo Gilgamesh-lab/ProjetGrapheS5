@@ -32,8 +32,8 @@ public class Main extends Application {
 
         // Menu déroulant pour algorithmes
         ComboBox<String> algoMenu = new ComboBox<>();
-        algoMenu.getItems().addAll("BFS", "DFS", "Kruskal", "Prim", "Dijkstra", "Bellman-Ford", "Floyd-Warshall");
-        algoMenu.setValue("BFS");
+        algoMenu.getItems().addAll("Choix Algo","BFS", "DFS", "Kruskal", "Prim", "Dijkstra", "Bellman-Ford", "Floyd-Warshall");
+        algoMenu.setValue("Choix Algo");
         algoMenu.setDisable(true);
 
         // ComboBox pour choisir sommet départ et arrivée
@@ -50,7 +50,7 @@ public class Main extends Application {
 
         // Boutons stylisés
         Button runButton = new Button("Exécuter l'algo");
-        Button resetButton = new Button("Relancer simulation");
+        Button resetButton = new Button("Supprimer");
         runButton.setDisable(true);
         resetButton.setDisable(true);
         runButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
@@ -117,6 +117,7 @@ public class Main extends Application {
                 case "Floyd-Warshall":
                     Resultat resFloyd = graphe.getFloydWarshall();
                     String cheminStr = graphe.cheminFloydWarshall(resFloyd.getMatricePere(), depart, arrivee);
+                    System.out.println("DEBUG: cheminStr = " + cheminStr);
                     if (cheminStr == null) {
                         System.out.println("Aucun chemin trouvé avec Floyd-Warshall.");
                         break;
@@ -160,6 +161,7 @@ public class Main extends Application {
     private List<Arete> buildEdgesFromPath(Graphe graphe, String cheminStr) {
         List<Arete> edges = new ArrayList<>();
         if (cheminStr == null || cheminStr.isEmpty()) return edges;
+        System.out.println("DEBUG: Construction des arêtes pour chemin : " + cheminStr);
 
         // Le chemin est sous forme "A -> B -> C -> D"
         String[] noms = cheminStr.split(" -> ");
@@ -174,6 +176,8 @@ public class Main extends Application {
                     break;
                 }
             }
+
+
         }
         return edges;
     }
