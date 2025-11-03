@@ -230,6 +230,7 @@ public class Graphe {
 	 * @return un objet de type Resultat contenant le chemin et le graphe obtenue grâce au parcours en profondeur
 	 */
 	public Resultat getDFS(String nomPointDepart) {
+		this.reset();
 		Sommet depart = this.getSommetsTrier().stream().filter(sommet -> sommet.getNom() == nomPointDepart).findFirst().get();
 		String chemin = depart.getNom();
 		Graphe grapheDFS = new Graphe();
@@ -240,9 +241,29 @@ public class Graphe {
 		
 		resultat.setChemin(chemin);
 		resultat.setGraphe(grapheDFS);
-		this.getSommetsTrier().forEach(sommet -> sommet.setMarquer(false)); // reset
 		return resultat;
 		
+	}
+	
+	/**
+	 * Visite de façon récursive un sommet et tout ses enfants
+	 * @param sommet le sommet à visiter et qui va servir de point de départ du parcours en profondeur
+	 * @param chemin variable  qui stocke le chemin obtenue
+	 * @param grapheDFS variable qui stocke le graphe obtenue
+	 * @return le chemin obtenue
+	 */
+	public String visiterDFS(Sommet sommet, String chemin, Graphe grapheDFS) {
+		sommet.setMarquer(true);
+		for (Sommet voisin : sommet.getVoisins()) {
+			if(!voisin.isMarquer()) {
+				grapheDFS.ajouterSommet(voisin.getNom());
+				new Arete(grapheDFS.getSommetParNom(sommet.getNom()), grapheDFS.getSommetParNom(voisin.getNom()));
+				chemin += "->" + voisin.getNom();
+				chemin = visiterDFS(voisin, chemin, grapheDFS);
+			}
+		}
+		
+		return chemin;
 	}
 	
 	/**
@@ -282,7 +303,7 @@ public class Graphe {
 					}
 				}
 				else {
-					if( distanceMinimale.get(arete.getSource().getNom()) > distanceMinimale.get(sommet.getNom())  + arete.getPoids()) {
+					if( arete.EstOrienter() && distanceMinimale.get(arete.getSource().getNom()) > distanceMinimale.get(sommet.getNom())  + arete.getPoids()) {
 						distanceMinimale.put(arete.getSource().getNom(), distanceMinimale.get(sommet.getNom())  + arete.getPoids());
 						predecesseur.put(arete.getSource().getNom(), sommet);
 					}
@@ -302,7 +323,7 @@ public class Graphe {
 		
 		Resultat resultat = new Resultat();
 		resultat.setChemin(chemin);
-		resultat.setPoids(distanceMinimale.get(arrive.getNom()));
+		resultat.setPoids(Long.valueOf(distanceMinimale.get(arrive.getNom())));
 		return resultat;
 		
 		
@@ -316,14 +337,14 @@ public class Graphe {
 	 */
 	public Resultat getBellmanFord(String villeDeDepart, String villeDArrive) {
 		Sommet depart = this.getSommetsTrier().stream().filter(sommet -> sommet.getNom() == villeDeDepart).findFirst().get();
-		HashMap<String, Integer> distanceMinimale = new HashMap<String, Integer>();
+		HashMap<String, Long> distanceMinimale = new HashMap<String, Long>();
 		HashMap<String, Sommet> predecesseur = new HashMap<String, Sommet>();
 		
-		int infinie = Integer.MAX_VALUE / 10000; // représente la valeur infinie
+		long infinie = Long.MAX_VALUE / 10000; // représente la valeur infinie
 		
 		for (Sommet s : this.getSommetsTrier() ) {
 			if(s == depart){
-				distanceMinimale.put(s.getNom(), 0);
+				distanceMinimale.put(s.getNom(), 0L);
 			}
 			else {
 				distanceMinimale.put(s.getNom(), infinie);
@@ -356,6 +377,8 @@ public class Graphe {
 			Resultat resultat = new Resultat();
 			resultat.setChemin(chemin);
 			resultat.setPoids(distanceMinimale.get(arrive.getNom()));
+			resultat.setMatriceDistanceBF(distanceMinimale);
+			resultat.setMatricePereBF(predecesseur);
 			return resultat;
 		}
 		catch (NullPointerException e) { // Si aucun chemin n'a pu être trouver entre le sommet de départ et le sommet d'arrivé
@@ -369,58 +392,64 @@ public class Graphe {
 	 * @return un objet Resultat contenant la  matrice des distance et la matrice des pères correspondant à ce graphe
 	 */
 	public Resultat getFloydWarshall() {
-		HashMap<String, HashMap<String, Integer>> w = new HashMap<String, HashMap<String, Integer>>();
-		int infinie = Integer.MAX_VALUE / 10000; // représente la valeur infinie si point d'arrivé hors de portée
+		HashMap<String, HashMap<String, Long>> w = new HashMap<>();
+		long infinie = Long.MAX_VALUE / 10000; // représente la valeur infinie si point d'arrivé hors de portée
 		Arete arete;
+		HashMap<String, HashMap<String, Sommet>> p = new HashMap<String, HashMap<String, Sommet>>();
 		
+		
+		for (Sommet s : this.getSommetsTrier()) {
+		    w.put(s.getNom(), new HashMap<>());
+		    p.put(s.getNom(), new HashMap<>());
+		}
+			
 		for (Sommet key : this.getSommetsTrier() ){
-			w.put(key.getNom(), new HashMap<String, Integer>());
 			for (Sommet key2 : this.getSommetsTrier() ){
 				if (key == key2) { // si le sommet de départ est le sommet d'arrivée
-					w.get(key.getNom()).put(key2.getNom(), 0);
+					w.get(key.getNom()).put(key2.getNom(), 0L);
+					p.get(key.getNom()).put(key2.getNom(), null);
 				}
 				else{
-					arete = key.getAretes().stream().filter(arete2 -> arete2.getDestination() == key2).findFirst().orElse(null);
-					if(arete == null) { // si pas de chemin
-						w.get(key.getNom()).put(key2.getNom(), infinie); 
+					arete = key.getAretes().stream().filter(arete2 -> arete2.getDestination() == key2 || (!arete2.EstOrienter() && arete2.getDestination() == key  && arete2.getSource() == key2)).findFirst().orElse(null);
+					if(arete != null) { // si pas de chemin
+						w.get(key.getNom()).put(key2.getNom(), Long.valueOf(arete.getPoids()) );
+						p.get(key.getNom()).put(key2.getNom(), key);
+						if(!arete.EstOrienter()) {
+							w.get(key2.getNom()).put(key.getNom(), Long.valueOf(arete.getPoids()));
+						    p.get(key2.getNom()).put(key.getNom(), key2);
+						}
 					}
 					else {
-						w.get(key.getNom()).put(key2.getNom(), arete.getPoids());
-					}
-				
-				}
-			}
-		}
-		
-		HashMap<String, HashMap<String, Sommet>> p = new HashMap<String, HashMap<String, Sommet>>();
-		for (Sommet key : this.getSommetsTrier() ){
-			p.put(key.getNom(), new HashMap<String, Sommet>());
-			for (Sommet key2 : this.getSommetsTrier() ){
-				if (key != key2) { // si le sommet de départ est le sommet d'arrivée
-					arete = key.getAretes().stream().filter(arete2 -> arete2.getDestination() == key2).findFirst().orElse(null);
-					if(arete == null) { // si pas de chemin
+						w.get(key.getNom()).put(key2.getNom(), infinie); 
 						p.get(key.getNom()).put(key2.getNom(), null);
 					}
-					else {
-						p.get(key.getNom()).put(key2.getNom(), key);
-					}
 				}
 			}
 		}
 		
-		String k,i,j;
+		String k;
+		String i;
+		String j;
 		for (Sommet key1 : this.getSommetsTrier() ){
 			k = key1.getNom();
 			for (Sommet key2 : this.getSommetsTrier() ){
 				i = key2.getNom();
 				for (Sommet key3 : this.getSommetsTrier() ){
 					j = key3.getNom();
-					if(w.get(i).get(k) + w.get(k).get(j) < w.get(i).get(j)) {
+					if(w.get(i).get(k) != infinie && w.get(k).get(j) != infinie 
+						    && w.get(i).get(k) + w.get(k).get(j) < w.get(i).get(j)) {
 						w.get(i).put(j, w.get(i).get(k) + w.get(k).get(j));
 						p.get(i).put(j, p.get(k).get(j));
 					}
 				}
 			}
+		}
+		
+		for (Sommet s : this.getSommetsTrier()) {
+		    String nom = s.getNom();
+		    if (w.get(nom).get(nom) < 0) {
+		        System.out.println("⚠️ Cycle négatif détecté impliquant " + nom);
+		    }
 		}
 		
 		Resultat resultat = new Resultat();
@@ -477,26 +506,7 @@ public class Graphe {
 	}
 	
 	
-	/**
-	 * Visite de façon récursive un sommet et tout ses enfants
-	 * @param sommet le sommet à visiter et qui va servir de point de départ du parcours en profondeur
-	 * @param chemin variable  qui stocke le chemin obtenue
-	 * @param grapheDFS variable qui stocke le graphe obtenue
-	 * @return le chemin obtenue
-	 */
-	public String visiterDFS(Sommet sommet, String chemin, Graphe grapheDFS) {
-		sommet.setMarquer(true);
-		for (Sommet voisin : sommet.getVoisins()) {
-			if(!voisin.isMarquer()) {
-				grapheDFS.ajouterSommet(voisin.getNom());
-				new Arete(grapheDFS.getSommetParNom(sommet.getNom()), grapheDFS.getSommetParNom(voisin.getNom()));
-				chemin += "->" + voisin.getNom();
-				chemin = visiterDFS(voisin, chemin, grapheDFS);
-			}
-		}
-		
-		return chemin;
-	}
+	
 	
 	/**
 	 * Renvoie une liste de string correspondant à tout les sommets appartenant à l'arbre de la première aretes
@@ -583,7 +593,7 @@ public class Graphe {
 	 * Contruit et renvoie une version du graphe de départ orienté et avec des poids négatifs
 	 * @return le graphe de départ orienté et avec des poids négatifs
 	 */
-	public static Graphe getDefaultGrapheOrienterNegatif() {
+	public static Graphe getDefaultGrapheNegatif() {
 		
 		ArrayList<Sommet> sommets = new ArrayList<Sommet>();
 		Sommet bordeaux = new Sommet("Bordeaux", null, sommets);
@@ -600,31 +610,31 @@ public class Graphe {
 		
 		Sommet grenoble = new Sommet("Grenoble", null, sommets);
 		
-		new Arete(bordeaux, rennes, true, 130);
-		new Arete(bordeaux, nantes, true, 90);
-		new Arete(bordeaux, lyon, true, 100);
-		new Arete(bordeaux, paris, true, -150);
+		new Arete(bordeaux, rennes, false, 130);
+		new Arete(bordeaux, nantes, false, 90);
+		new Arete(bordeaux, lyon, false, 100);
+		new Arete(bordeaux, paris, false, 150);
 		
-		new Arete(rennes, nantes, true, 45);
-		new Arete(rennes, caen, true, -75);
-		new Arete(rennes, paris, true, 110);
+		new Arete(rennes, nantes, false, -45);
+		new Arete(rennes, caen, false, 75);
+		new Arete(rennes, paris, false, 110);
 		
-		new Arete(nantes, paris, true, -80);
-		new Arete(caen, lille, true, 65);
-		new Arete(caen, paris, true, 50);
+		new Arete(nantes, paris, false, 80);
+		new Arete(caen, lille, false, 65);
+		new Arete(caen, paris, false, 50);
 		
-		new Arete(paris, lille, true, 70);
-		new Arete(paris, dijon, true, -60);
-		new Arete(dijon, lille, true, 120);
+		new Arete(paris, lille, false, 70);
+		new Arete(paris, dijon, false, -60);
+		new Arete(dijon, lille, false, 120);
 		
-		new Arete(dijon, nancy, true, 75);
-		new Arete(dijon, grenoble, true, -75);
-		new Arete(dijon, lyon, true, 70);
+		new Arete(dijon, nancy, false, 75);
+		new Arete(dijon, grenoble, false, 75);
+		new Arete(dijon, lyon, false, 70);
 		
-		new Arete(lyon, nancy, true, 90);
-		new Arete(lyon, grenoble, true, -40);
-		new Arete(grenoble, nancy, true, 80);
-		new Arete(lille, nancy, true, 100);
+		new Arete(lyon, nancy, false, 90);
+		new Arete(lyon, grenoble, false, -40);
+		new Arete(grenoble, nancy, false, 80);
+		new Arete(lille, nancy, false, 100);
 		
 		
 		Graphe graphe = new Graphe(sommets);
